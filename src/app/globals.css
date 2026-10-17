@@ -1,26 +1,208 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+  --color-paper: #eef2ee;
+  --color-surface: #ffffff;
+  --color-ink: #14213d;
+  --color-ink-soft: #4a5670;
+  --color-line: #d3dcd5;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  /* Status colours carry meaning everywhere: green = paid/safe,
+     marigold = waiting on someone, brick = stopped. Never decorative. */
+  --color-guard: #2f6b4f;
+  --color-guard-soft: #dcebe2;
+  --color-hold: #e3a21a;
+  --color-hold-ink: #7a5200;
+  --color-hold-soft: #fbefd2;
+  --color-alarm: #b8322a;
+  --color-alarm-soft: #f6dedb;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-atkinson), ui-sans-serif, system-ui, sans-serif;
+
+  --text-base: 1.125rem;
+  --text-base--line-height: 1.6;
+  --text-lg: 1.375rem;
+  --text-lg--line-height: 1.45;
+  --text-xl: 1.75rem;
+  --text-xl--line-height: 1.25;
+  --text-2xl: 2.25rem;
+  --text-2xl--line-height: 1.15;
+  --text-3xl: 3rem;
+  --text-3xl--line-height: 1.05;
+  --text-4xl: 4.25rem;
+  --text-4xl--line-height: 0.98;
+
+  --animate-stamp: stamp 420ms cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+  --animate-tag-in: tag-in 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+
+  @keyframes stamp {
+    from {
+      opacity: 0;
+      transform: rotate(-14deg) scale(1.6);
+    }
+    to {
+      opacity: 1;
+      transform: rotate(-7deg) scale(1);
+    }
+  }
+
+  @keyframes tag-in {
+    from {
+      opacity: 0;
+      transform: translateY(14px) rotate(1.5deg);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  html {
+    background: var(--color-paper);
+    color: var(--color-ink);
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+    font-variant-numeric: tabular-nums;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-ink);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+
+  ::selection {
+    background: var(--color-hold-soft);
+  }
+}
+
+@layer components {
+  /* A payment is drawn as a paper tag: notched left edge with a punched hole.
+     It's the one ornamental thing in the UI, so it gets to be a bit tactile. */
+  .tag {
+    position: relative;
+    background: var(--color-surface);
+    border-radius: 4px 14px 14px 4px;
+    padding: 1rem 1.25rem 1rem 2.5rem;
+    -webkit-mask: radial-gradient(circle at 0 50%, transparent 11px, #000 11.5px);
+    mask: radial-gradient(circle at 0 50%, transparent 11px, #000 11.5px);
+    box-shadow:
+      0 1px 0 var(--color-line),
+      0 10px 24px -18px rgb(20 33 61 / 0.45);
+  }
+
+  .tag::before {
+    content: "";
+    position: absolute;
+    left: 1.1rem;
+    top: 50%;
+    width: 9px;
+    height: 9px;
+    margin-top: -4.5px;
+    border-radius: 999px;
+    background: var(--color-paper);
+    box-shadow: inset 0 1px 1px rgb(20 33 61 / 0.25);
+  }
+
+  .stamp {
+    display: inline-block;
+    transform: rotate(-7deg);
+    border: 2.5px solid currentColor;
+    border-radius: 8px;
+    padding: 0.1rem 0.6rem 0.15rem;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.05rem;
+    line-height: 1.3;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 3rem;
+    padding: 0 1.25rem;
+    border-radius: 999px;
+    font-weight: 700;
+    transition:
+      background-color 150ms,
+      transform 150ms;
+  }
+
+  .btn:active {
+    transform: translateY(1px);
+  }
+
+  .btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .btn-primary {
+    background: var(--color-ink);
+    color: var(--color-paper);
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background: #22325a;
+  }
+
+  .btn-quiet {
+    background: transparent;
+    color: var(--color-ink);
+    box-shadow: inset 0 0 0 2px var(--color-line);
+  }
+
+  .btn-quiet:hover:not(:disabled) {
+    box-shadow: inset 0 0 0 2px var(--color-ink-soft);
+  }
+
+  .field {
+    width: 100%;
+    min-height: 3rem;
+    border-radius: 12px;
+    background: var(--color-surface);
+    border: 2px solid var(--color-line);
+    padding: 0.5rem 0.9rem;
+  }
+
+  .field:focus {
+    border-color: var(--color-ink);
+    outline: none;
+  }
+
+  .panel {
+    background: var(--color-surface);
+    border-radius: 20px;
+    padding: 1.5rem;
+    box-shadow: 0 1px 0 var(--color-line);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 1ms !important;
+  }
 }
