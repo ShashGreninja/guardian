@@ -18,19 +18,32 @@ declare global {
   }
 }
 
-function loadSdk(clientId: string, idToken: string) {
-  return new Promise<void>((resolve, reject) => {
-    document.getElementById("paypal-sdk")?.remove();
-    delete window.paypal;
+// Load the SDK once per page. Re-inserting the script tears down every
+// rendered button ("zoid destroyed all components"), which React's dev-mode
+// double mount was triggering.
+let sdkPromise: Promise<void> | null = null;
 
-    const script = document.createElement("script");
-    script.id = "paypal-sdk";
-    script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(clientId)}&components=buttons`;
-    script.dataset.userIdToken = idToken;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error("Couldn't load PayPal. Check your connection."));
-    document.body.appendChild(script);
+function loadSdk() {
+  if (window.paypal) return Promise.resolve();
+
+  sdkPromise ??= (async () => {
+    const config = await walletSdkConfig();
+    if (!config.ok) throw new Error(config.error);
+
+    await new Promise<void>((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(config.clientId)}&components=buttons`;
+      script.dataset.userIdToken = config.idToken;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error("Couldn't load PayPal. Check your connection."));
+      document.body.appendChild(script);
+    });
+  })().catch((err) => {
+    sdkPromise = null; // let a later mount retry
+    throw err;
   });
+
+  return sdkPromise;
 }
 
 export function WalletConnect({ parentName }: { parentName: string }) {
@@ -45,9 +58,7 @@ export function WalletConnect({ parentName }: { parentName: string }) {
 
     (async () => {
       try {
-        const config = await walletSdkConfig();
-        if (!config.ok) throw new Error(config.error);
-        await loadSdk(config.clientId, config.idToken);
+        await loadSdk();
         if (cancelled || !window.paypal || !container.current) return;
 
         buttons = window.paypal.Buttons({
@@ -65,6 +76,7 @@ export function WalletConnect({ parentName }: { parentName: string }) {
         });
         await buttons.render(container.current);
       } catch (err) {
+        // Closing the buttons on unmount rejects render(); that's expected.
         if (!cancelled) setError(err instanceof Error ? err.message : "PayPal didn't load.");
       } finally {
         if (!cancelled) setLoading(false);

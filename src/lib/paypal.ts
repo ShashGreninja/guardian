@@ -76,7 +76,11 @@ export async function userIdToken(customerId?: string | null) {
   return data.id_token;
 }
 
-async function call<T>(path: string, init: { method?: string; body?: unknown } = {}) {
+async function call<T>(
+  path: string,
+  init: { method?: string; body?: unknown } = {},
+  retried = false,
+): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`, {
     method: init.method ?? "POST",
     headers: {
@@ -92,6 +96,14 @@ async function call<T>(path: string, init: { method?: string; body?: unknown } =
   if (res.status === 204) return undefined as T;
 
   const data = await res.json().catch(() => ({}));
+
+  // Scopes are baked into the access token. If app features were changed in
+  // the dashboard after we cached it, a fresh token picks them up.
+  if (res.status === 403 && !retried) {
+    cachedToken = null;
+    return call<T>(path, init, true);
+  }
+
   if (!res.ok) {
     const issue = data.details?.[0];
     const message = issue
@@ -106,20 +118,31 @@ async function call<T>(path: string, init: { method?: string; body?: unknown } =
 
 type SetupToken = { id: string; status: string; customer?: { id: string } };
 
-export function createSetupToken(origin: string) {
-  return call<SetupToken>("/v3/vault/setup-tokens", {
-    body: {
-      payment_source: {
-        paypal: {
-          usage_type: "MERCHANT",
-          experience_context: {
-            return_url: `${origin}/caregiver?wallet=connected`,
-            cancel_url: `${origin}/caregiver?wallet=cancelled`,
+export async function createSetupToken(origin: string) {
+  try {
+    return await call<SetupToken>("/v3/vault/setup-tokens", {
+      body: {
+        payment_source: {
+          paypal: {
+            usage_type: "MERCHANT",
+            experience_context: {
+              return_url: `${origin}/caregiver?wallet=connected`,
+              cancel_url: `${origin}/caregiver?wallet=cancelled`,
+            },
           },
         },
       },
-    },
-  });
+    });
+  } catch (err) {
+    if (err instanceof PayPalError && err.status === 403) {
+      throw new PayPalError(
+        "This PayPal app isn't allowed to save wallets. Turn on Save payment methods for the app, and make sure its sandbox business account is in the US.",
+        403,
+        err.debugId,
+      );
+    }
+    throw err;
+  }
 }
 
 type PaymentToken = {
