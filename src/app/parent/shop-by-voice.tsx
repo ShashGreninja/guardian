@@ -137,7 +137,7 @@ export function ShopByVoice({
         setCart(null);
         setIncoming({
           id: Date.now(),
-          outcome: r.outcome === "held" ? "held" : "stopped",
+          outcome: r.outcome === "paid" ? "paid" : r.outcome === "held" ? "held" : "stopped",
           travelMs: 1400,
         });
       }
@@ -276,7 +276,14 @@ export function ShopByVoice({
 
         {result && result.outcome !== "failed" && (
           <div className="mt-6 flex items-center gap-4">
-            <Stamp status={result.outcome === "held" ? "authorized" : "stopped"} delayMs={0} onDark size="lg" />
+            <Stamp
+              status={
+                result.outcome === "paid" ? "captured" : result.outcome === "held" ? "authorized" : "stopped"
+              }
+              delayMs={0}
+              onDark
+              size="lg"
+            />
           </div>
         )}
 

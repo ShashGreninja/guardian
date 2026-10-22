@@ -13,9 +13,23 @@ import {
 } from "./paypal";
 import type { Household } from "./db/schema";
 
+export type Decider = "verifier" | "caregiver" | "paypal";
+
+const BY: Record<Decider, string> = {
+  verifier: "The verifier",
+  caregiver: "You",
+  paypal: "PayPal",
+};
+
 export async function holdPayment(
   household: Household,
-  input: { merchant: string; description: string; amountCents: number },
+  input: {
+    merchant: string;
+    description: string;
+    amountCents: number;
+    /** Ties the PayPal order to the signed rule set it was checked against. */
+    customId?: string;
+  },
 ) {
   if (!household.vaultId) throw new PayPalError("Connect a PayPal wallet first", 409);
 
@@ -37,6 +51,7 @@ export async function holdPayment(
       currency: "USD",
       description: `${input.merchant}: ${input.description}`,
       referenceId: id,
+      customId: input.customId,
     });
     await db
       .update(schema.payments)
@@ -60,6 +75,13 @@ export async function holdPayment(
   return id;
 }
 
+export async function saveReview(paymentId: string, review: unknown) {
+  await db
+    .update(schema.payments)
+    .set({ review: JSON.stringify(review) })
+    .where(eq(schema.payments.id, paymentId));
+}
+
 async function loadAuthorized(paymentId: string) {
   const [payment] = await db
     .select()
@@ -75,32 +97,32 @@ async function loadAuthorized(paymentId: string) {
   return payment as typeof payment & { authorizationId: string };
 }
 
-export async function releasePayment(paymentId: string) {
+export async function releasePayment(paymentId: string, by: Decider = "caregiver") {
   const payment = await loadAuthorized(paymentId);
   const capture = await captureAuthorization(payment.authorizationId);
   await db
     .update(schema.payments)
-    .set({ status: "captured", captureId: capture.id, updatedAt: new Date() })
+    .set({ status: "captured", captureId: capture.id, decidedBy: by, updatedAt: new Date() })
     .where(eq(schema.payments.id, paymentId));
   await logEvent(
     payment.householdId,
     "payment.captured",
-    `Paid ${formatMoney(payment.amountCents)} to ${payment.merchant}`,
+    `${BY[by]} paid ${formatMoney(payment.amountCents)} to ${payment.merchant}`,
     paymentId,
   );
 }
 
-export async function cancelPayment(paymentId: string) {
+export async function cancelPayment(paymentId: string, by: Decider = "caregiver") {
   const payment = await loadAuthorized(paymentId);
   await voidAuthorization(payment.authorizationId);
   await db
     .update(schema.payments)
-    .set({ status: "voided", updatedAt: new Date() })
+    .set({ status: "voided", decidedBy: by, updatedAt: new Date() })
     .where(eq(schema.payments.id, paymentId));
   await logEvent(
     payment.householdId,
     "payment.voided",
-    `Released the hold of ${formatMoney(payment.amountCents)} for ${payment.merchant}`,
+    `${BY[by]} released the hold of ${formatMoney(payment.amountCents)} for ${payment.merchant}`,
     paymentId,
   );
 }

@@ -6,22 +6,24 @@ import type { Household } from "./db/schema";
 import { logEvent } from "./household";
 import { activeRules, spentThisWeek } from "./mandates";
 import { formatMoney } from "./money";
-import { holdPayment } from "./payments";
+import { cancelPayment, holdPayment, releasePayment, saveReview } from "./payments";
+import { reviewBasket } from "./verifier";
 import { evaluate, type Check, type Verdict } from "./policy";
 import type { Category } from "./rules";
 import type { CartLine } from "./shopper";
 
 export type OrderResult = {
-  outcome: "held" | "refused" | "failed";
+  outcome: "paid" | "held" | "refused" | "failed";
   verdict: Verdict | null;
   checks: Check[];
+  reasons?: string[];
   message: string;
 };
 
 /**
- * The parent said yes. Check the cart against the signed rules, then put a
- * hold on the wallet. Nothing is captured here; that's the caregiver's call
- * (or, later, the verifier's).
+ * The parent said yes. Check the cart against the signed rules, hold the
+ * money on the wallet, let the verifier review it, then capture, void, or
+ * leave it for the caregiver.
  */
 export async function confirmCart(household: Household, cartId: string): Promise<OrderResult> {
   const [cart] = await db.select().from(schema.carts).where(eq(schema.carts.id, cartId));
@@ -88,11 +90,16 @@ export async function confirmCart(household: Household, cartId: string): Promise
     };
   }
 
+  // 1. PayPal holds the money. The order carries the signed rule set's reference.
+  let paymentId: string;
   try {
-    const paymentId = await holdPayment(household, {
+    paymentId = await holdPayment(household, {
       merchant: cart.store,
       description,
       amountCents: cart.totalCents,
+      customId: rules
+        ? `rules-v${rules.mandate.version}-${rules.mandate.digest.slice(0, 16)}`
+        : undefined,
     });
     await db
       .update(schema.carts)
@@ -113,11 +120,53 @@ export async function confirmCart(household: Household, cartId: string): Promise
     };
   }
 
+  // 2. A second agent, which never saw the conversation, reviews the basket.
+  const review = await reviewBasket({
+    rules: rules?.rules ?? null,
+    rulesSource: rules?.mandate.sourceText ?? null,
+    store: cart.store,
+    category: cart.category,
+    lines,
+    totalCents: cart.totalCents,
+    policy: { verdict, checks },
+  });
+  await saveReview(paymentId, { ...review, policyVerdict: verdict, checks });
+  const reasons = review.reasons;
+
+  // 3. Most cautious answer wins.
+  try {
+    if (review.decision === "reject") {
+      await cancelPayment(paymentId, "verifier");
+      await logEvent(household.id, "order.refused", `Verifier stopped ${cart.store}: ${reasons[0] ?? "rule conflict"}`, paymentId);
+      return {
+        outcome: "refused",
+        verdict,
+        checks,
+        reasons,
+        message: `I didn't buy that. A second check found a problem, so the hold was released and no money moved. ${household.caregiverName} can see why.`,
+      };
+    }
+    if (review.decision === "approve" && verdict === "pass") {
+      await releasePayment(paymentId, "verifier");
+      return {
+        outcome: "paid",
+        verdict,
+        checks,
+        reasons,
+        message: `Done. It's paid, ${formatMoney(cart.totalCents)} at ${cart.store}.`,
+      };
+    }
+  } catch (err) {
+    console.error("verifier decision failed", err);
+  }
+
+  await logEvent(household.id, "order.waiting", `${cart.store} order is waiting for ${household.caregiverName}`, paymentId);
   return {
     outcome: "held",
     verdict,
     checks,
-    message: `Done. I've reserved ${formatMoney(cart.totalCents)} on your PayPal. ${household.caregiverName} will confirm it.`,
+    reasons,
+    message: `I've reserved ${formatMoney(cart.totalCents)} on your PayPal. ${household.caregiverName} will take a look before it's paid.`,
   };
 }
 
