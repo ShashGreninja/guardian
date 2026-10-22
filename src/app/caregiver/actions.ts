@@ -7,6 +7,7 @@ import { createHousehold, requireHousehold, saveWallet, logEvent } from "@/lib/h
 import { parseAmount } from "@/lib/money";
 import { cancelPayment, holdPayment, releasePayment } from "@/lib/payments";
 import { createPaymentToken, createSetupToken, userIdToken } from "@/lib/paypal";
+import { resolveAlert } from "@/lib/scam";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -102,6 +103,18 @@ export async function tryPayment(_: FormResult | null, form: FormData): Promise<
     return { ok: true };
   } catch (err) {
     return { ...failure(err), values };
+  } finally {
+    revalidatePath("/caregiver");
+  }
+}
+
+export async function markAlertHandled(alertId: string): Promise<ActionResult> {
+  try {
+    const household = await requireHousehold();
+    await resolveAlert(household.id, alertId);
+    return { ok: true };
+  } catch (err) {
+    return failure(err);
   } finally {
     revalidatePath("/caregiver");
   }

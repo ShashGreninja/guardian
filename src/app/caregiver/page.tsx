@@ -9,6 +9,8 @@ import { getHousehold, recentActivity, recentPayments } from "@/lib/household";
 import { activeRules, spentThisWeek, type ActiveRules } from "@/lib/mandates";
 import { formatMoney } from "@/lib/money";
 import { paypalConfigured } from "@/lib/paypal";
+import { openAlerts, PATTERN_LABELS } from "@/lib/scam";
+import { Alerts } from "./alerts";
 import { HoldActions } from "./hold-actions";
 import { HouseholdForm } from "./household-form";
 import { Tile } from "./tile";
@@ -25,11 +27,12 @@ export default async function CaregiverPage() {
   const household = await getHousehold();
   if (!household) return <Setup />;
 
-  const [payments, activity, rules, spent] = await Promise.all([
+  const [payments, activity, rules, spent, alerts] = await Promise.all([
     recentPayments(household.id),
     recentActivity(household.id),
     activeRules(household.id),
     spentThisWeek(household.id),
+    openAlerts(household.id),
   ]);
   const waiting = payments.filter((p) => p.status === "authorized");
   const history = payments.filter((p) => p.status !== "authorized");
@@ -38,6 +41,21 @@ export default async function CaregiverPage() {
 
   return (
     <div className="mx-auto grid max-w-[90rem] grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-12 lg:gap-7">
+      <Alerts
+        parentName={household.parentName}
+        alerts={alerts.map((a) => ({
+          id: a.id,
+          recipient: a.recipient,
+          amountCents: a.amountCents,
+          said: a.said,
+          pattern: PATTERN_LABELS[a.pattern as keyof typeof PATTERN_LABELS] ?? a.pattern,
+          risk: a.risk,
+          explanation: a.explanation,
+          advice: a.advice,
+          when: formatTime(a.createdAt),
+        }))}
+      />
+
       <ShieldTile
         household={household}
         waiting={waiting}
@@ -357,7 +375,7 @@ function dotColor(type: string) {
   if (type.endsWith("captured") || type.startsWith("wallet") || type.startsWith("rules")) {
     return "bg-go";
   }
-  if (type.endsWith("refused")) return "bg-stop";
+  if (type.endsWith("refused") || type === "scam.blocked") return "bg-stop";
   if (type.endsWith("held") || type.startsWith("order")) return "bg-wait";
   if (type.endsWith("failed")) return "bg-stop";
   return "bg-fg-mute";
