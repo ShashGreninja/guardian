@@ -39,15 +39,16 @@ export function Simulator({ parentName }: { parentName: string }) {
   }
 
   return (
-    <section className="sheet">
-      <h2 className="text-xl font-bold">What if {parentName} asked for…</h2>
-      <p className="mt-2 text-ink-soft">
+    <section className="panel lg:sticky lg:top-24">
+      <h2 className="hud relative text-fg-mute">Simulator</h2>
+      <p className="relative mt-3 font-display text-xl font-bold">What if {parentName} asked for…</p>
+      <p className="relative mt-1 text-fg-soft">
         Test a purchase against the signed rules. Nothing is held or paid.
       </p>
 
-      <form onSubmit={run} className="mt-5 grid gap-4">
+      <form onSubmit={run} className="relative mt-5 grid gap-4">
         <div
-          className="grid grid-cols-2 gap-1 rounded-full bg-paper p-1"
+          className="grid grid-cols-2 gap-1 rounded-full border border-edge-strong p-1"
           role="radiogroup"
           aria-label="Who gets the money"
         >
@@ -62,7 +63,7 @@ export function Simulator({ parentName }: { parentName: string }) {
               aria-checked={toPerson === o.value}
               onClick={() => setToPerson(o.value)}
               className={`rounded-full py-2 font-bold transition-colors ${
-                toPerson === o.value ? "bg-ink text-surface" : "text-ink-soft"
+                toPerson === o.value ? "bg-fg text-void" : "text-fg-soft hover:text-fg"
               }`}
             >
               {o.label}
@@ -106,16 +107,19 @@ export function Simulator({ parentName }: { parentName: string }) {
           />
         </label>
 
-        {error && <p className="text-alarm">{error}</p>}
+        {error && <p className="text-stop">{error}</p>}
         <button className="btn btn-primary justify-self-start" disabled={pending}>
           {pending ? "Checking…" : "Check it"}
         </button>
       </form>
 
       {result && (
-        <div key={result.run} className="mt-6 animate-rise border-t-2 border-dashed border-line pt-5">
+        <div
+          key={result.run}
+          className="relative mt-6 animate-rise border-t border-dashed border-edge-strong pt-5"
+        >
           <div className="flex flex-wrap items-center gap-4">
-            <Stamp status={OUTCOME[result.verdict].stamp} delayMs={0} />
+            <Stamp status={OUTCOME[result.verdict].stamp} delayMs={0} onDark />
             <p className="font-bold">{OUTCOME[result.verdict].text}</p>
           </div>
           <div className="mt-4">

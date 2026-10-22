@@ -6,7 +6,7 @@ import { Stamp } from "@/components/payment-tag";
 import { getHousehold } from "@/lib/household";
 import { activeRules, spentThisWeek, type ActiveRules } from "@/lib/mandates";
 import { formatMoney } from "@/lib/money";
-import { Shell } from "../shell";
+import { Tile } from "../tile";
 import { RuleFacts, RuleReading } from "./rule-facts";
 import { RulesEditor } from "./rules-editor";
 import { Simulator } from "./simulator";
@@ -24,20 +24,24 @@ export default async function RulesPage() {
   ]);
 
   return (
-    <Shell household={household}>
-      <section className="relative isolate overflow-clip rounded-[30px] bg-ink px-6 py-8 text-surface sm:px-10 sm:py-10">
+    <div className="mx-auto grid max-w-[90rem] grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-12">
+      <section className="relative isolate overflow-clip rounded-[26px] border border-edge bg-[radial-gradient(80%_90%_at_85%_50%,#0d1a33,var(--color-void))] p-6 sm:p-8 lg:col-span-12">
         <div
           aria-hidden
-          className="rosette pointer-events-none absolute -right-40 -bottom-72 -z-10 size-[36rem] text-surface/[0.06]"
+          className="rosette pointer-events-none absolute top-1/2 -right-40 -z-10 size-[40rem] -translate-y-1/2 text-scan/[0.07]"
         />
         <div className="grid items-end gap-8 lg:grid-cols-[minmax(0,1fr)_auto]">
           <div>
-            <h1 className="display max-w-[16ch] text-[clamp(2.5rem,5vw,4rem)]">
+            <p className="hud flex items-center gap-2 text-fg-soft">
+              <span className={`size-1.5 rounded-full ${rules ? (rules.verified ? "bg-go" : "bg-stop") : "bg-fg-mute"}`} />
+              {rules ? `Rule set v${rules.mandate.version} active` : "No rules signed"}
+            </p>
+            <h1 className="display mt-4 max-w-[16ch] text-[clamp(2.6rem,5vw,4.5rem)]">
               {rules ? `${household.parentName}'s rules are on.` : `Set the rules for ${household.parentName}.`}
             </h1>
-            <p className="mt-4 max-w-[52ch] text-lg text-surface/80">
+            <p className="mt-4 max-w-[54ch] text-lg text-fg-soft">
               {rules
-                ? `Every payment is checked against rule set v${rules.mandate.version} before any money moves. ${formatMoney(spent)} held or paid in the last 7 days.`
+                ? `Every payment is checked against these rules before any money moves. ${formatMoney(spent)} held or paid in the last 7 days.`
                 : "Write them in plain English. Claude reads them into a rule set, you check the reading, and Guardian signs it. Every payment is then checked against it."}
             </p>
           </div>
@@ -49,40 +53,31 @@ export default async function RulesPage() {
         </div>
       </section>
 
-      <div className="mt-10 grid grid-cols-[minmax(0,1fr)] gap-10 lg:grid-cols-[minmax(0,1fr)_26rem]">
-        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-10">
-          {rules && (
-            <section>
-              <h2 className="display text-2xl">Signed rule set</h2>
-              <div className="mt-5">
-                <RuleFacts rules={rules.rules} />
-              </div>
-              <div className="mt-4 rounded-[22px] bg-surface px-5">
-                <RuleReading rules={rules.rules} />
-              </div>
-            </section>
-          )}
-          <RulesEditor
-            initialText={rules?.mandate.sourceText ?? null}
-            parentName={household.parentName}
-          />
-        </div>
-
-        <aside className="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-8">
-          {rules ? (
-            <Simulator parentName={household.parentName} />
-          ) : (
-            <section className="sheet">
-              <h2 className="text-xl font-bold">Then test it</h2>
-              <p className="mt-2 text-ink-soft">
-                Once the rules are signed, you can try purchases here and see exactly which rule
-                lets each one through, sends it to you, or stops it.
-              </p>
-            </section>
-          )}
-        </aside>
+      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-5 lg:col-span-8">
+        {rules && (
+          <Tile label="Signed rule set">
+            <RuleFacts rules={rules.rules} />
+            <div className="mt-5">
+              <RuleReading rules={rules.rules} />
+            </div>
+          </Tile>
+        )}
+        <RulesEditor initialText={rules?.mandate.sourceText ?? null} parentName={household.parentName} />
       </div>
-    </Shell>
+
+      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-5 lg:col-span-4">
+        {rules ? (
+          <Simulator parentName={household.parentName} />
+        ) : (
+          <Tile label="Then test it">
+            <p className="text-fg-soft">
+              Once the rules are signed, you can try purchases here and see exactly which rule
+              lets each one through, sends it to you, or stops it.
+            </p>
+          </Tile>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -91,7 +86,7 @@ function SignatureCard({ rules }: { rules: ActiveRules }) {
   const digest = rules.mandate.digest.slice(0, 16).match(/.{4}/g)!.join(" ");
 
   return (
-    <div className="w-full max-w-sm rounded-[22px] bg-surface p-6 text-ink">
+    <div className="w-full rounded-[22px] bg-surface p-6 text-ink">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm text-ink-soft">Rule set v{rules.mandate.version}</p>
