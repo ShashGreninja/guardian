@@ -323,7 +323,8 @@ function dotColor(type: string) {
   if (type.endsWith("captured") || type.startsWith("wallet") || type.startsWith("rules")) {
     return "bg-go";
   }
-  if (type.endsWith("held")) return "bg-wait";
+  if (type.endsWith("refused")) return "bg-stop";
+  if (type.endsWith("held") || type.startsWith("order")) return "bg-wait";
   if (type.endsWith("failed")) return "bg-stop";
   return "bg-fg-mute";
 }

@@ -29,11 +29,13 @@ export function SideNav() {
           </Link>
         );
       })}
-      <span className="flex items-center gap-3 px-3 py-2.5 text-fg-mute">
+      <Link
+        href="/parent"
+        className="flex items-center gap-3 rounded-xl px-3.5 py-3 font-bold text-fg-soft transition-colors hover:bg-white/[0.04] hover:text-fg"
+      >
         <Mic className="size-5" aria-hidden />
         Parent view
-        <span className="hud ml-auto rounded-full border border-edge px-2 py-0.5">Soon</span>
-      </span>
+      </Link>
     </nav>
   );
 }

@@ -8,7 +8,9 @@ import { signOut } from "../login/actions";
 import { PageTitle, SideNav, TabBar } from "./nav";
 
 export default async function CaregiverLayout({ children }: { children: React.ReactNode }) {
-  if (!(await currentRole())) redirect("/login");
+  const role = await currentRole();
+  if (!role) redirect("/login");
+  if (role === "parent") redirect("/parent");
   const household = await getHousehold();
 
   return (
