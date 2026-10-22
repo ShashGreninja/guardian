@@ -5,6 +5,7 @@ import { Logo } from "@/components/logo";
 import { getHousehold } from "@/lib/household";
 import { currentRole } from "@/lib/session";
 import { signOut } from "../login/actions";
+import { LiveRefresh } from "./live-refresh";
 import { PageTitle, SideNav, TabBar } from "./nav";
 
 export default async function CaregiverLayout({ children }: { children: React.ReactNode }) {
@@ -66,6 +67,7 @@ export default async function CaregiverLayout({ children }: { children: React.Re
       </div>
 
       <TabBar />
+      <LiveRefresh />
     </div>
   );
 }

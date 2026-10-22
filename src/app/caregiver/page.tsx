@@ -80,7 +80,12 @@ export default async function CaregiverPage() {
                     status={p.status}
                     serial={serial(p.id)}
                     note={`Held ${formatTime(p.updatedAt)}`}
-                    footer={<HoldActions paymentId={p.id} />}
+                    footer={
+                      <>
+                        <ReviewNotes review={p.review} />
+                        <HoldActions paymentId={p.id} />
+                      </>
+                    }
                   />
                 ))}
               </div>
@@ -258,6 +263,30 @@ function RulesTile({ rules, className }: { rules: ActiveRules | null; className:
   );
 }
 
+/** Why the verifier sent this payment to you, shown on the held tag. */
+function ReviewNotes({ review }: { review: string | null }) {
+  if (!review) return null;
+  let parsed: { reasons?: string[]; by?: string } = {};
+  try {
+    parsed = JSON.parse(review);
+  } catch {
+    return null;
+  }
+  if (!parsed.reasons?.length) return null;
+  return (
+    <div className="mb-4">
+      <p className="text-sm font-bold text-ink-soft">
+        {parsed.by === "verifier" ? "The verifier asked you to look because:" : "Why it's waiting:"}
+      </p>
+      <ul className="mt-1 list-disc pl-5 text-sm text-ink">
+        {parsed.reasons.map((r) => (
+          <li key={r}>{r}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function NextSteps({ parentName }: { parentName: string }) {
   const steps = [
     `Sign in with ${parentName}'s PayPal once. Guardian saves the wallet with PayPal Vault.`,
@@ -295,8 +324,13 @@ function Ledger({ payments }: { payments: Payment[] }) {
             </span>
           </span>
           <span className="font-display text-lg font-bold">{formatMoney(p.amountCents)}</span>
-          <span className="justify-self-end">
+          <span className="grid justify-items-end gap-1 justify-self-end">
             <Stamp status={p.status} size="sm" onDark />
+            {p.decidedBy && (
+              <span className="hud text-fg-mute">
+                by {p.decidedBy === "caregiver" ? "you" : p.decidedBy}
+              </span>
+            )}
           </span>
         </li>
       ))}
