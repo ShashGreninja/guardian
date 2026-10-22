@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CheckpointDemo } from "@/components/checkpoint-demo";
+import { Holo } from "@/components/holo";
 import { Logo } from "@/components/logo";
 
 const stations = [
@@ -30,43 +31,39 @@ const rules = [
 export default function Home() {
   return (
     <div className="flex flex-1 flex-col overflow-x-clip">
-      <header className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-5 sm:px-8">
-        <Logo />
-        <nav className="flex items-center gap-2 sm:gap-6">
-          <a href="#how" className="hidden font-bold hover:underline sm:inline">
-            How it works
-          </a>
-          <Link href="/caregiver" className="btn btn-primary min-h-11 px-5 whitespace-nowrap">
-            <span className="sm:hidden">Dashboard</span>
-            <span className="hidden sm:inline">Open dashboard</span>
-          </Link>
-        </nav>
-      </header>
-
       <main className="flex-1">
-        <section className="relative isolate">
-          <div
-            aria-hidden
-            className="rosette pointer-events-none absolute -top-40 -left-56 -z-10 size-[44rem] text-engrave/45"
-          />
-          <div className="mx-auto grid w-full max-w-7xl grid-cols-[minmax(0,1fr)] items-center gap-12 px-4 pt-8 pb-20 sm:px-8 lg:grid-cols-[1.05fr_1fr] lg:gap-16 lg:pt-14 lg:pb-28">
+        <section className="relative isolate overflow-clip bg-ink text-surface">
+          <header className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-5 sm:px-8">
+            <Logo tone="light" />
+            <nav className="flex items-center gap-2 sm:gap-6">
+              <a href="#how" className="hidden font-bold text-surface/80 hover:text-surface sm:inline">
+                How it works
+              </a>
+              <Link href="/caregiver" className="btn btn-gold min-h-11 px-5 whitespace-nowrap">
+                <span className="sm:hidden">Dashboard</span>
+                <span className="hidden sm:inline">Open dashboard</span>
+              </Link>
+            </nav>
+          </header>
+
+          <div className="mx-auto grid w-full max-w-7xl grid-cols-[minmax(0,1fr)] items-center gap-10 px-4 pt-6 pb-20 sm:px-8 lg:grid-cols-[0.95fr_1.05fr] lg:gap-12 lg:pt-10 lg:pb-24">
             <div>
-              <h1 className="display text-[clamp(3.4rem,9vw,7.25rem)]">
+              <h1 className="display text-[clamp(3.4rem,8.5vw,7rem)]">
                 <span className="block">Mom can shop</span>
                 <span className="block">by voice.</span>
                 <span className="mt-2 block">A scammer can&apos;t.</span>
               </h1>
-              <p className="mt-7 max-w-[44ch] text-lg text-ink-soft">
+              <p className="mt-7 max-w-[44ch] text-lg text-surface/75">
                 Guardian is a PayPal shopping agent for aging parents. You set the rules once.
                 Every payment is held on her wallet, checked by a second agent, and only then
                 paid.
               </p>
               <div className="mt-9 flex flex-wrap items-center gap-3">
-                <Link href="/caregiver" className="btn btn-primary">
+                <Link href="/caregiver" className="btn btn-gold">
                   Set up your family
                 </Link>
-                <a href="#how" className="btn btn-quiet">
-                  See the checkpoint
+                <a href="#how" className="btn btn-quiet text-surface">
+                  How it works
                 </a>
               </div>
             </div>
@@ -118,6 +115,7 @@ export default function Home() {
             </p>
           </div>
 
+          <Holo className="holo-light rounded-[26px]">
           <figure className="relative rounded-[26px] bg-surface p-2 shadow-[0_30px_60px_-40px_rgb(16_36_63/0.7)]">
             <div className="relative overflow-clip rounded-[20px] border-2 border-engrave/60 p-6 sm:p-8">
               <div
@@ -146,6 +144,7 @@ export default function Home() {
               </div>
             </div>
           </figure>
+          </Holo>
         </section>
 
         <section className="relative isolate overflow-clip bg-ink text-surface">
