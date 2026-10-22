@@ -128,7 +128,7 @@ export function ScrollCheckpoint() {
           <p className="hud text-fg-mute">Keep scrolling</p>
         </div>
 
-        <div className="relative mx-auto grid w-full max-w-[90rem] flex-1 grid-cols-[minmax(0,1fr)] items-center gap-6 px-4 sm:px-8 lg:grid-cols-[1fr_1.1fr_1fr]">
+        <div className="relative mx-auto grid w-full max-w-[90rem] flex-1 grid-cols-[minmax(0,1fr)] items-center gap-8 px-4 sm:px-8 lg:grid-cols-[1fr_1.1fr_1fr] lg:gap-14">
           {/* Shield: background on small screens, centre column on large. */}
           <div className="pointer-events-none absolute inset-0 opacity-60 lg:static lg:order-2 lg:h-full lg:opacity-100">
             <Shield incoming={incoming} />
@@ -150,7 +150,7 @@ export function ScrollCheckpoint() {
           </div>
 
           <div className="relative z-10 self-end pb-6 lg:order-3 lg:self-center lg:pb-0">
-            <ul className="mb-4 grid gap-2" aria-label="Checks against Priya's rules">
+            <ul className="mb-6 grid gap-3" aria-label="Checks against Priya's rules">
               {act.checks.map((c, i) => {
                 const { Icon, className } = ICONS[c.verdict];
                 return (
