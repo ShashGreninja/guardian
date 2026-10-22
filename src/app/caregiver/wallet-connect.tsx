@@ -91,13 +91,13 @@ export function WalletConnect({ parentName }: { parentName: string }) {
 
   return (
     <div>
-      <p className="text-ink-soft">
+      <p className="text-fg-soft">
         Sign in with {parentName}&apos;s PayPal sandbox account. Guardian saves the wallet so it
         can place holds later, without asking for a password each time.
       </p>
       <div ref={container} className="mt-5 min-h-12 max-w-sm" />
-      {loading && <p className="text-ink-soft">Loading PayPal…</p>}
-      {error && <p className="mt-3 text-alarm">{error}</p>}
+      {loading && <p className="text-fg-soft">Loading PayPal…</p>}
+      {error && <p className="mt-3 text-stop">{error}</p>}
     </div>
   );
 }

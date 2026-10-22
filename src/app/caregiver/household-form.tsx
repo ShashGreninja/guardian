@@ -28,7 +28,7 @@ export function HouseholdForm() {
           defaultValue={state?.values?.caregiverName}
         />
       </label>
-      {state && !state.ok && <p className="text-alarm">{state.error}</p>}
+      {state && !state.ok && <p className="text-stop">{state.error}</p>}
       <button className="btn btn-primary justify-self-start" disabled={pending}>
         {pending ? "Setting up…" : "Create household"}
       </button>

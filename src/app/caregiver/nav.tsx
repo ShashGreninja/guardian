@@ -2,31 +2,71 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LayoutGrid, Mic, ScrollText } from "lucide-react";
 
 const LINKS = [
-  { href: "/caregiver", label: "Payments" },
-  { href: "/caregiver/rules", label: "Rules" },
+  { href: "/caregiver", label: "Overview", Icon: LayoutGrid },
+  { href: "/caregiver/rules", label: "Rules", Icon: ScrollText },
 ];
 
-export function CaregiverNav() {
+export function SideNav() {
   const pathname = usePathname();
   return (
-    <nav className="flex gap-1 rounded-full bg-paper-deep p-1" aria-label="Dashboard">
-      {LINKS.map((l) => {
-        const active = pathname === l.href;
+    <nav className="grid gap-1" aria-label="App">
+      {LINKS.map(({ href, label, Icon }) => {
+        const active = pathname === href;
         return (
           <Link
-            key={l.href}
-            href={l.href}
+            key={href}
+            href={href}
             aria-current={active ? "page" : undefined}
-            className={`rounded-full px-4 py-1.5 font-bold transition-colors ${
-              active ? "bg-ink text-surface" : "text-ink-soft hover:text-ink"
+            className={`flex items-center gap-3 rounded-xl px-3 py-2.5 font-bold transition-colors ${
+              active ? "bg-white/[0.07] text-fg" : "text-fg-soft hover:bg-white/[0.04] hover:text-fg"
             }`}
           >
-            {l.label}
+            <Icon className={`size-5 ${active ? "text-scan" : ""}`} aria-hidden />
+            {label}
+          </Link>
+        );
+      })}
+      <span className="flex items-center gap-3 px-3 py-2.5 text-fg-mute">
+        <Mic className="size-5" aria-hidden />
+        Parent view
+        <span className="hud ml-auto rounded-full border border-edge px-2 py-0.5">Soon</span>
+      </span>
+    </nav>
+  );
+}
+
+export function TabBar() {
+  const pathname = usePathname();
+  return (
+    <nav
+      className="fixed inset-x-3 bottom-3 z-40 grid grid-cols-2 gap-1 rounded-2xl border border-edge-strong bg-panel/90 p-1.5 backdrop-blur-xl lg:hidden"
+      aria-label="App"
+    >
+      {LINKS.map(({ href, label, Icon }) => {
+        const active = pathname === href;
+        return (
+          <Link
+            key={href}
+            href={href}
+            aria-current={active ? "page" : undefined}
+            className={`flex items-center justify-center gap-2 rounded-xl py-2.5 font-bold ${
+              active ? "bg-white/[0.08] text-fg" : "text-fg-soft"
+            }`}
+          >
+            <Icon className={`size-5 ${active ? "text-scan" : ""}`} aria-hidden />
+            {label}
           </Link>
         );
       })}
     </nav>
   );
+}
+
+export function PageTitle() {
+  const pathname = usePathname();
+  const title = LINKS.find((l) => l.href === pathname)?.label ?? "Guardian";
+  return <p className="font-display text-xl font-bold">{title}</p>;
 }

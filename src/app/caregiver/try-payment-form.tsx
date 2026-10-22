@@ -27,7 +27,7 @@ export function TryPaymentForm() {
         <span className="font-bold">Amount in USD</span>
         <input name="amount" className="field" inputMode="decimal" defaultValue={values.amount} />
       </label>
-      {state && !state.ok && <p className="text-alarm">{state.error}</p>}
+      {state && !state.ok && <p className="text-stop">{state.error}</p>}
       <button className="btn btn-primary justify-self-start" disabled={pending}>
         {pending ? "Placing hold…" : "Place a hold"}
       </button>
