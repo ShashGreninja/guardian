@@ -58,11 +58,20 @@ The developer dashboard creates a sandbox **personal** account for you (Testing 
 2. Check how each line was read, then click **Sign and turn on**. The signature card shows the version, digest and a **Signed** stamp.
 3. Use **What if … asked for** to test purchases. A $38 pharmacy order is held for you; $500 to "Danny" is stopped.
 
+### Shopping by voice
+
+1. Sign out, then choose **I'm shopping** (or use **Parent view** in the sidebar).
+2. Tap the microphone and ask for something, for example "I need bread and oat milk". Typing works too. Voice uses the browser's speech recognition (Chrome and Edge support it).
+3. Guardian searches the store catalogue, builds a basket and reads it back. Tap **Yes, buy it**.
+4. The basket is checked against the signed rules. If they allow it, a PayPal hold is placed and it shows up under **Waiting for you** on the caregiver dashboard. If they don't, nothing is charged.
+
+The shopping agent is Claude with two tools: `search_products` over a local demo catalogue and `propose_cart`. It never pays. Payment only happens after the parent confirms and the deterministic rules check passes.
+
 ## Roadmap
 
 - [x] Wallet connect, holds, capture and void
 - [x] Caregiver rules in plain English, turned into a signed spending mandate
-- [ ] Voice shopping agent for the parent
+- [x] Voice shopping agent for the parent
 - [ ] Independent verifier agent and caregiver approvals
 - [ ] Scam shield for requests to send money to people
 
