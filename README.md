@@ -67,12 +67,27 @@ The developer dashboard creates a sandbox **personal** account for you (Testing 
 
 The shopping agent is Claude with two tools: `search_products` over a local demo catalogue and `propose_cart`. It never pays. Payment only happens after the parent confirms and the deterministic rules check passes.
 
+### The verifier
+
+After the parent says yes:
+
+1. PayPal holds the money. The order's `custom_id` carries the signed rule set's version and digest.
+2. A second Claude agent reviews the basket. It sees only the signed rules, the basket and the deterministic check, never the conversation, so nobody can talk it into approving.
+3. The most cautious answer wins:
+   - **Paid on its own:** the rules pass and the verifier approves.
+   - **Waiting for you:** either one is unsure. The tag shows the verifier's reasons.
+   - **Stopped:** either one says no. The hold is voided.
+
+If the verifier can't run, the payment waits for the caregiver. The dashboard refreshes every few seconds, so a voice order shows up without reloading.
+
+**Webhooks:** once deployed, add a sandbox webhook for `https://<host>/api/paypal/webhook` (authorization voided, capture completed or denied) and put its ID in `PAYPAL_WEBHOOK_ID`. Deliveries are verified with PayPal before anything changes.
+
 ## Roadmap
 
 - [x] Wallet connect, holds, capture and void
 - [x] Caregiver rules in plain English, turned into a signed spending mandate
 - [x] Voice shopping agent for the parent
-- [ ] Independent verifier agent and caregiver approvals
+- [x] Independent verifier agent and caregiver approvals
 - [ ] Scam shield for requests to send money to people
 
 ## Stack
