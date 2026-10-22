@@ -6,11 +6,11 @@ import { cookies } from "next/headers";
 // to separate the landing page from the app. Real accounts would replace this.
 const COOKIE = "guardian_role";
 
-export type Role = "caregiver";
+export type Role = "caregiver" | "parent";
 
 export async function currentRole(): Promise<Role | null> {
   const value = (await cookies()).get(COOKIE)?.value;
-  return value === "caregiver" ? value : null;
+  return value === "caregiver" || value === "parent" ? value : null;
 }
 
 export async function startSession(role: Role) {

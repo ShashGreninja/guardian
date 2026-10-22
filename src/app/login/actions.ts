@@ -8,6 +8,11 @@ export async function signInAsCaregiver() {
   redirect("/caregiver");
 }
 
+export async function signInAsParent() {
+  await startSession("parent");
+  redirect("/parent");
+}
+
 export async function signOut() {
   await endSession();
   redirect("/login");

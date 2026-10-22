@@ -6,13 +6,14 @@ import { Logo } from "@/components/logo";
 import { Shield } from "@/components/shield";
 import { getHousehold } from "@/lib/household";
 import { currentRole } from "@/lib/session";
-import { signInAsCaregiver } from "./actions";
+import { signInAsCaregiver, signInAsParent } from "./actions";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Sign in · Guardian" };
 
 export default async function LoginPage() {
-  if (await currentRole()) redirect("/caregiver");
+  const role = await currentRole();
+  if (role) redirect(role === "parent" ? "/parent" : "/caregiver");
   const household = await getHousehold();
 
   return (
@@ -67,19 +68,24 @@ export default async function LoginPage() {
             </button>
           </form>
 
-          <div className="mt-5 flex items-start gap-4 rounded-[22px] border border-dashed border-edge p-6">
-            <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-white/5 text-fg-mute">
-              <Mic className="size-6" aria-hidden />
-            </span>
-            <span>
-              <span className="block font-display text-xl font-bold text-fg-soft">
-                I&apos;m shopping
+          <form action={signInAsParent} className="mt-5">
+            <button
+              type="submit"
+              className="group flex w-full items-start gap-4 rounded-[22px] border border-edge-strong bg-panel p-6 text-left transition-colors hover:border-wait"
+            >
+              <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-wait/10 text-wait">
+                <Mic className="size-6" aria-hidden />
               </span>
-              <span className="mt-1 block text-fg-mute">
-                The voice view for parents arrives in the next build.
+              <span className="flex-1">
+                <span className="block font-display text-xl font-bold">I&apos;m shopping</span>
+                <span className="mt-1 block text-fg-soft">
+                  {household
+                    ? `Continue as ${household.parentName}. Ask for what you need out loud.`
+                    : "Ask for what you need out loud."}
+                </span>
               </span>
-            </span>
-          </div>
+            </button>
+          </form>
 
           <p className="hud mt-10 text-fg-mute">
             Demo sign-in. This build serves one household on the PayPal sandbox.
