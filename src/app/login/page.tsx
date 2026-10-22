@@ -17,18 +17,23 @@ export default async function LoginPage() {
 
   return (
     <div className="grid min-h-svh flex-1 lg:grid-cols-[1.1fr_1fr]">
-      <section className="relative isolate hidden overflow-clip border-r border-edge lg:flex lg:flex-col lg:justify-between lg:p-10">
-        <div className="pointer-events-none absolute inset-0 -z-10">
+      <section className="relative isolate hidden overflow-clip border-r border-edge lg:grid lg:place-items-center">
+        {/* Shield and headline share one grid cell, so the words sit in its centre. */}
+        <div className="pointer-events-none col-start-1 row-start-1 aspect-square w-[min(52rem,115%)]">
           <Shield ambient />
         </div>
-        <Logo tone="light" />
-        <div>
-          <p className="hud text-scan">Shield armed</p>
-          <p className="display mt-4 max-w-[12ch] text-[clamp(3rem,5vw,5rem)]">
+        <div className="col-start-1 row-start-1 grid max-w-[20rem] justify-items-center text-center">
+          <p className="hud flex items-center gap-2 text-go">
+            <span className="size-1.5 rounded-full bg-go" /> Shield armed
+          </p>
+          <p className="display mt-5 text-[clamp(2.4rem,3.4vw,3.6rem)]">
             Every payment checked before it moves.
           </p>
         </div>
-        <LiveClock className="text-fg-mute" />
+        <div className="absolute top-10 left-10">
+          <Logo tone="light" />
+        </div>
+        <LiveClock className="absolute bottom-10 left-10 text-fg-mute" />
       </section>
 
       <section className="flex flex-col justify-center px-4 py-16 sm:px-10">
@@ -43,10 +48,10 @@ export default async function LoginPage() {
               : "Choose how you're using Guardian."}
           </p>
 
-          <form action={signInAsCaregiver} className="mt-10">
+          <form action={signInAsCaregiver} className="mt-12">
             <button
               type="submit"
-              className="group flex w-full items-start gap-4 rounded-[22px] border border-edge-strong bg-panel p-5 text-left transition-colors hover:border-scan"
+              className="group flex w-full items-start gap-4 rounded-[22px] border border-edge-strong bg-panel p-6 text-left transition-colors hover:border-scan"
             >
               <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-scan/10 text-scan">
                 <HeartHandshake className="size-6" aria-hidden />
@@ -62,7 +67,7 @@ export default async function LoginPage() {
             </button>
           </form>
 
-          <div className="mt-4 flex items-start gap-4 rounded-[22px] border border-dashed border-edge p-5">
+          <div className="mt-5 flex items-start gap-4 rounded-[22px] border border-dashed border-edge p-6">
             <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-white/5 text-fg-mute">
               <Mic className="size-6" aria-hidden />
             </span>
