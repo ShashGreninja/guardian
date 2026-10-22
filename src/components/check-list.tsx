@@ -2,9 +2,9 @@ import { Check as CheckIcon, Clock, X } from "lucide-react";
 import type { Check } from "@/lib/policy";
 
 const ICONS = {
-  pass: { Icon: CheckIcon, className: "bg-guard text-surface", label: "Passes" },
-  ask: { Icon: Clock, className: "bg-hold text-ink", label: "Needs you" },
-  fail: { Icon: X, className: "bg-alarm text-surface", label: "Fails" },
+  pass: { Icon: CheckIcon, className: "bg-go text-void", label: "Passes" },
+  ask: { Icon: Clock, className: "bg-wait text-void", label: "Needs you" },
+  fail: { Icon: X, className: "bg-stop text-void", label: "Fails" },
 };
 
 export function CheckList({ checks }: { checks: Check[] }) {

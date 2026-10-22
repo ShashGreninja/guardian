@@ -37,11 +37,17 @@ const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t 
 export function Shield({
   incoming,
   holds = 0,
+  budget = null,
+  ambient = false,
   className = "",
 }: {
   incoming?: Incoming | null;
   /** Number of payments currently on hold; they orbit the rim. */
   holds?: number;
+  /** Share of the weekly budget used (0..1+), drawn as a ring. */
+  budget?: number | null;
+  /** Sends a stream of sample payments, for the landing page. */
+  ambient?: boolean;
   className?: string;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -51,25 +57,49 @@ export function Shield({
     ripples: [] as Ripple[],
     bloom: null as { born: number; color: string } | null,
     lastIncoming: -1,
+    budget: null as number | null,
+    budgetShown: 0,
   });
-
-  // New incoming payment: replace any transient threads with it.
   useEffect(() => {
-    if (!incoming || incoming.id === state.current.lastIncoming) return;
+    state.current.budget = budget;
+  }, [budget]);
+
+  function send(outcome: Outcome, travelMs: number, id: number) {
     const s = state.current;
-    s.lastIncoming = incoming.id;
+    s.lastIncoming = id;
     s.threads = s.threads.filter((t) => t.persistent);
     s.threads.push({
-      id: incoming.id,
-      outcome: incoming.outcome,
+      id,
+      outcome,
       angle: -Math.PI / 2 + (Math.random() - 0.5) * 1.6,
       born: performance.now(),
-      travelMs: incoming.travelMs,
+      travelMs,
       trail: [],
       arrived: false,
       persistent: false,
     });
+  }
+
+  // New incoming payment: replace any transient threads with it.
+  useEffect(() => {
+    if (!incoming || incoming.id === state.current.lastIncoming) return;
+    send(incoming.outcome, incoming.travelMs, incoming.id);
   }, [incoming]);
+
+  useEffect(() => {
+    if (!ambient || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let n = 0;
+    const pick = (): Outcome => {
+      const r = Math.random();
+      return r < 0.55 ? "paid" : r < 0.8 ? "held" : "stopped";
+    };
+    const first = setTimeout(() => send("paid", 1700, ++n * -1000), 600);
+    const timer = setInterval(() => send(pick(), 1700, ++n * -1000), 3200);
+    return () => {
+      clearTimeout(first);
+      clearInterval(timer);
+    };
+  }, [ambient]);
 
   // Standing holds orbit the rim.
   useEffect(() => {
@@ -178,6 +208,26 @@ export function Shield({
         : "rgba(160,220,230,0.22)";
       ctx!.lineWidth = heldNow ? 2 : 1.2;
       ctx!.stroke();
+
+      // Weekly budget ring, eased toward its value.
+      if (s.budget !== null && s.budget !== undefined) {
+        s.budgetShown += (Math.min(s.budget, 1) - s.budgetShown) * (reduced ? 1 : Math.min(dt / 400, 1));
+        const rr = R * 1.2;
+        const start = -Math.PI / 2;
+        ctx!.lineCap = "round";
+        ctx!.beginPath();
+        ctx!.arc(cx, cy, rr, 0, Math.PI * 2);
+        ctx!.strokeStyle = "rgba(150,190,230,0.12)";
+        ctx!.lineWidth = 6;
+        ctx!.stroke();
+        const ringColor = s.budget > 1 ? COLORS.stopped : s.budget > 0.8 ? COLORS.held : COLORS.paid;
+        ctx!.beginPath();
+        ctx!.arc(cx, cy, rr, start, start + Math.PI * 2 * Math.max(s.budgetShown, 0.004));
+        ctx!.strokeStyle = `rgba(${ringColor},0.95)`;
+        ctx!.lineWidth = 6;
+        ctx!.stroke();
+        ctx!.lineCap = "butt";
+      }
 
       // Ripples from stopped payments.
       s.ripples = s.ripples.filter((r) => now - r.born < 1100);

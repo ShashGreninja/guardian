@@ -1,17 +1,31 @@
 @import "tailwindcss";
 
 @theme {
-  /* Security paper: the palette of cheques and banknotes. */
+  /* Command center: the app lives at night. */
+  --color-void: #060a14;
+  --color-panel: #0b1222;
+  --color-panel-2: #111a2e;
+  --color-edge: rgb(150 190 230 / 0.13);
+  --color-edge-strong: rgb(150 190 230 / 0.26);
+  --color-fg: #e9eff7;
+  --color-fg-soft: #a4b1c6;
+  --color-fg-mute: #6c7a92;
+
+  /* Signals. Green = paid, amber = waiting on you, red = stopped,
+     cyan = the shield itself. They mean the same thing everywhere. */
+  --color-go: #3fd69b;
+  --color-wait: #f2b233;
+  --color-stop: #ff5a3c;
+  --color-scan: #7af0ff;
+
+  /* Paper objects (payment tags, the rules certificate) keep the
+     security-paper palette so they read as physical things. */
   --color-paper: #e6eee8;
-  --color-paper-deep: #d6e3da;
   --color-surface: #fbfcf9;
   --color-ink: #10243f;
   --color-ink-soft: #485a72;
   --color-line: #c5d5ca;
   --color-engrave: #9db8a7;
-
-  /* Status colours carry meaning everywhere: green = paid,
-     marigold = waiting on someone, seal red = stopped. */
   --color-guard: #1f5c4a;
   --color-guard-soft: #d3e7dc;
   --color-hold: #e8a317;
@@ -22,23 +36,27 @@
 
   --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-atkinson), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-martian), ui-monospace, monospace;
 
+  --text-xs: 0.72rem;
+  --text-xs--line-height: 1.4;
   --text-sm: 0.95rem;
   --text-sm--line-height: 1.45;
-  --text-base: 1.125rem;
+  --text-base: 1.0625rem;
   --text-base--line-height: 1.6;
-  --text-lg: 1.375rem;
+  --text-lg: 1.3rem;
   --text-lg--line-height: 1.4;
-  --text-xl: 1.75rem;
+  --text-xl: 1.7rem;
   --text-xl--line-height: 1.2;
-  --text-2xl: 2.5rem;
-  --text-2xl--line-height: 1.05;
+  --text-2xl: 2.4rem;
+  --text-2xl--line-height: 1.02;
   --text-3xl: 3.5rem;
   --text-3xl--line-height: 0.95;
 
   --animate-stamp: stamp 460ms cubic-bezier(0.2, 0.9, 0.3, 1.35) both;
-  --animate-rise: rise 500ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
-  --animate-spin-slow: spin 140s linear infinite;
+  --animate-rise: rise 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-marquee: marquee 38s linear infinite;
+  --animate-blink: blink 1.4s steps(2, start) infinite;
 
   @keyframes stamp {
     0% {
@@ -68,19 +86,129 @@
   @keyframes rise {
     from {
       opacity: 0;
-      transform: translateY(10px);
+      transform: translateY(18px);
     }
     to {
       opacity: 1;
       transform: none;
     }
   }
+
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @keyframes blink {
+    to {
+      visibility: hidden;
+    }
+  }
+}
+
+@property --sweep {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@property --pct {
+  syntax: "<integer>";
+  inherits: false;
+  initial-value: 0;
+}
+
+/* Landing intro: the shield engraves itself, then the screen opens. */
+.intro {
+  animation: intro-gone 0s linear 2.35s forwards;
+}
+
+.intro-engrave {
+  background: conic-gradient(from -90deg, var(--color-scan) var(--sweep), transparent 0);
+  -webkit-mask: url("/rosette.svg") center / contain no-repeat;
+  mask: url("/rosette.svg") center / contain no-repeat;
+  animation: intro-sweep 1.35s cubic-bezier(0.6, 0, 0.3, 1) 0.15s forwards;
+}
+
+.intro-count::after {
+  counter-reset: pct var(--pct);
+  content: counter(pct);
+  animation: intro-count 1.35s cubic-bezier(0.6, 0, 0.3, 1) 0.15s forwards;
+}
+
+.intro-core {
+  animation: intro-fade 0.3s ease-in 1.6s forwards;
+}
+
+.intro-top {
+  animation: intro-up 0.75s cubic-bezier(0.7, 0, 0.2, 1) 1.6s forwards;
+}
+
+.intro-bottom {
+  animation: intro-down 0.75s cubic-bezier(0.7, 0, 0.2, 1) 1.6s forwards;
+}
+
+html[data-intro-seen] .intro {
+  display: none;
+}
+
+/* Hero copy waits for the intro to open, unless the intro was skipped. */
+.after-intro {
+  animation-delay: calc(var(--d, 0s) + 2.2s);
+}
+
+html[data-intro-seen] .after-intro {
+  animation-delay: var(--d, 0s);
+}
+
+@keyframes intro-sweep {
+  to {
+    --sweep: 360deg;
+  }
+}
+
+@keyframes intro-count {
+  to {
+    --pct: 100;
+  }
+}
+
+@keyframes intro-fade {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes intro-up {
+  to {
+    transform: translateY(-101%);
+  }
+}
+
+@keyframes intro-down {
+  to {
+    transform: translateY(101%);
+  }
+}
+
+@keyframes intro-gone {
+  to {
+    visibility: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro {
+    display: none;
+  }
 }
 
 @layer base {
   html {
-    background: var(--color-paper);
-    color: var(--color-ink);
+    background: var(--color-void);
+    color: var(--color-fg);
+    color-scheme: dark;
   }
 
   body {
@@ -98,13 +226,13 @@
   }
 
   :focus-visible {
-    outline: 3px solid var(--color-hold);
+    outline: 2px solid var(--color-scan);
     outline-offset: 3px;
     border-radius: 8px;
   }
 
   ::selection {
-    background: var(--color-hold-soft);
+    background: rgb(122 240 255 / 0.3);
   }
 }
 
@@ -115,7 +243,16 @@
     font-weight: 800;
     font-variation-settings: "wdth" 75;
     letter-spacing: -0.015em;
-    line-height: 0.92;
+    line-height: 0.9;
+  }
+
+  /* HUD microtype, the way instrument panels label things. */
+  .hud {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    line-height: 1.5;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
   }
 
   /* Guilloché line art, recoloured through masks. */
@@ -129,6 +266,24 @@
     background: currentColor;
     -webkit-mask: url("/band.svg") left center / auto 100% repeat-x;
     mask: url("/band.svg") left center / auto 100% repeat-x;
+  }
+
+  /* A dark instrument panel with a faint lit edge. */
+  .panel {
+    position: relative;
+    background: linear-gradient(180deg, var(--color-panel-2), var(--color-panel));
+    border: 1px solid var(--color-edge);
+    border-radius: 22px;
+    padding: 1.5rem;
+  }
+
+  .panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: radial-gradient(120% 60% at 50% 0%, rgb(122 240 255 / 0.06), transparent 60%);
   }
 
   /* Holographic foil. --hx/--hy (0..1) and the tilt are set from the pointer. */
@@ -179,14 +334,13 @@
   /* A payment is a paper tag: notched edge, punched hole, engraved strip. */
   .tag {
     position: relative;
+    color: var(--color-ink);
     background: var(--color-surface);
     border-radius: 6px 18px 18px 6px;
     padding: 1.1rem 1.35rem 1.1rem 2.75rem;
     -webkit-mask: radial-gradient(circle at 0 50%, transparent 12px, #000 12.5px);
     mask: radial-gradient(circle at 0 50%, transparent 12px, #000 12.5px);
-    box-shadow:
-      inset 0 0 0 1px rgb(16 36 63 / 0.06),
-      0 18px 30px -24px rgb(16 36 63 / 0.55);
+    box-shadow: 0 24px 40px -24px rgb(0 0 0 / 0.8);
   }
 
   .tag::before {
@@ -198,8 +352,8 @@
     height: 10px;
     margin-top: -5px;
     border-radius: 999px;
-    background: var(--color-paper);
-    box-shadow: inset 0 1px 2px rgb(16 36 63 / 0.35);
+    background: var(--color-void);
+    box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.5);
   }
 
   .tag::after {
@@ -260,7 +414,8 @@
     transition:
       background-color 150ms,
       box-shadow 150ms,
-      transform 150ms;
+      transform 150ms,
+      color 150ms;
   }
 
   .btn:active {
@@ -268,60 +423,80 @@
   }
 
   .btn:disabled {
-    opacity: 0.55;
+    opacity: 0.5;
     cursor: not-allowed;
   }
 
+  /* On dark, the primary action is the brightest thing on screen. */
   .btn-primary {
-    background: var(--color-ink);
-    color: var(--color-surface);
-    box-shadow: 0 10px 20px -12px rgb(16 36 63 / 0.8);
+    background: var(--color-fg);
+    color: var(--color-void);
   }
 
   .btn-primary:hover:not(:disabled) {
-    background: #1b3558;
+    background: #ffffff;
+    box-shadow: 0 0 0 6px rgb(233 239 247 / 0.08);
   }
 
   .btn-gold {
-    background: var(--color-hold);
-    color: var(--color-ink);
+    background: var(--color-wait);
+    color: var(--color-void);
   }
 
   .btn-gold:hover:not(:disabled) {
-    background: #f2b636;
+    background: #ffc54d;
+    box-shadow: 0 0 0 6px rgb(242 178 51 / 0.15);
   }
 
   .btn-quiet {
     background: transparent;
     color: inherit;
-    box-shadow: inset 0 0 0 2px currentColor;
+    box-shadow: inset 0 0 0 1.5px var(--color-edge-strong);
   }
 
   .btn-quiet:hover:not(:disabled) {
-    background: rgb(16 36 63 / 0.06);
+    box-shadow: inset 0 0 0 1.5px currentColor;
+  }
+
+  /* Paper tags have ink buttons. */
+  .tag .btn-primary {
+    background: var(--color-ink);
+    color: var(--color-surface);
+  }
+
+  .tag .btn-quiet {
+    box-shadow: inset 0 0 0 1.5px var(--color-line);
+  }
+
+  .tag .btn-quiet:hover:not(:disabled) {
+    box-shadow: inset 0 0 0 1.5px var(--color-ink);
   }
 
   .field {
     width: 100%;
     min-height: 3.1rem;
-    border-radius: 12px;
-    background: var(--color-surface);
-    border: 2px solid var(--color-line);
-    padding: 0.5rem 0.9rem;
+    border-radius: 14px;
+    background: rgb(6 10 20 / 0.6);
+    border: 1px solid var(--color-edge-strong);
+    color: var(--color-fg);
+    padding: 0.5rem 0.95rem;
+    transition:
+      border-color 150ms,
+      box-shadow 150ms;
+  }
+
+  .field::placeholder {
+    color: var(--color-fg-mute);
   }
 
   .field:focus {
-    border-color: var(--color-ink);
+    border-color: var(--color-scan);
+    box-shadow: 0 0 0 4px rgb(122 240 255 / 0.12);
     outline: none;
   }
 
-  .sheet {
-    background: var(--color-surface);
-    border-radius: 22px;
-    padding: 1.5rem;
-    box-shadow:
-      inset 0 0 0 1px rgb(16 36 63 / 0.06),
-      0 24px 40px -36px rgb(16 36 63 / 0.6);
+  select.field option {
+    background: var(--color-panel);
   }
 }
 

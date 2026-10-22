@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Atkinson_Hyperlegible, Bricolage_Grotesque } from "next/font/google";
+import { Atkinson_Hyperlegible, Bricolage_Grotesque, Martian_Mono } from "next/font/google";
 import "./globals.css";
 
 // Atkinson Hyperlegible was designed by the Braille Institute for low-vision
@@ -16,6 +16,11 @@ const bricolage = Bricolage_Grotesque({
   axes: ["wdth", "opsz"],
 });
 
+const martian = Martian_Mono({
+  variable: "--font-martian",
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
   title: "Guardian",
   description:
@@ -24,7 +29,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${atkinson.variable} ${bricolage.variable} h-full antialiased`}>
+    <html
+      lang="en"
+      // The landing intro marks returning visitors on <html> before hydration.
+      suppressHydrationWarning
+      className={`${atkinson.variable} ${bricolage.variable} ${martian.variable} h-full antialiased`}
+    >
       <body className="flex min-h-full flex-col">{children}</body>
     </html>
   );

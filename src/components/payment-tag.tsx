@@ -10,31 +10,57 @@ export type TagStatus =
   | "signed"
   | "tampered";
 
-const STATUS: Record<TagStatus, { label: string; text: string; accent: string }> = {
-  signed: { label: "Signed", text: "text-guard", accent: "var(--color-guard)" },
-  tampered: { label: "Signature broken", text: "text-alarm", accent: "var(--color-alarm)" },
-  authorized: { label: "On hold", text: "text-hold-ink", accent: "var(--color-hold)" },
-  captured: { label: "Paid", text: "text-guard", accent: "var(--color-guard)" },
-  voided: { label: "Cancelled", text: "text-ink-soft", accent: "var(--color-engrave)" },
-  failed: { label: "Didn't go through", text: "text-alarm", accent: "var(--color-alarm)" },
-  stopped: { label: "Stopped", text: "text-alarm", accent: "var(--color-alarm)" },
+const STATUS: Record<
+  TagStatus,
+  { label: string; text: string; onDark: string; accent: string }
+> = {
+  signed: { label: "Signed", text: "text-guard", onDark: "text-go", accent: "var(--color-guard)" },
+  tampered: {
+    label: "Signature broken",
+    text: "text-alarm",
+    onDark: "text-stop",
+    accent: "var(--color-alarm)",
+  },
+  authorized: {
+    label: "On hold",
+    text: "text-hold-ink",
+    onDark: "text-wait",
+    accent: "var(--color-hold)",
+  },
+  captured: { label: "Paid", text: "text-guard", onDark: "text-go", accent: "var(--color-guard)" },
+  voided: {
+    label: "Cancelled",
+    text: "text-ink-soft",
+    onDark: "text-fg-soft",
+    accent: "var(--color-engrave)",
+  },
+  failed: {
+    label: "Didn't go through",
+    text: "text-alarm",
+    onDark: "text-stop",
+    accent: "var(--color-alarm)",
+  },
+  stopped: { label: "Stopped", text: "text-alarm", onDark: "text-stop", accent: "var(--color-alarm)" },
 };
 
 export function Stamp({
   status,
   delayMs,
   size = "md",
+  onDark = false,
 }: {
   status: TagStatus;
   /** Plays the stamp animation after this many ms. Omit for a static stamp. */
   delayMs?: number;
   size?: "sm" | "md" | "lg";
+  /** Use the bright signal colours, for stamps sitting on dark panels. */
+  onDark?: boolean;
 }) {
   const s = STATUS[status];
   const sizeClass = size === "lg" ? "stamp-lg" : size === "sm" ? "stamp-sm" : "";
   return (
     <span
-      className={`stamp ${sizeClass} ${s.text} ${delayMs !== undefined ? "animate-stamp" : ""}`}
+      className={`stamp ${sizeClass} ${onDark ? s.onDark : s.text} ${delayMs !== undefined ? "animate-stamp" : ""}`}
       style={delayMs ? { animationDelay: `${delayMs}ms` } : undefined}
     >
       {s.label}
