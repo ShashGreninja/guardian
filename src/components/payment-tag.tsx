@@ -1,9 +1,18 @@
 import type { CSSProperties, ReactNode } from "react";
 import { formatMoney } from "@/lib/money";
 
-export type TagStatus = "authorized" | "captured" | "voided" | "failed" | "stopped";
+export type TagStatus =
+  | "authorized"
+  | "captured"
+  | "voided"
+  | "failed"
+  | "stopped"
+  | "signed"
+  | "tampered";
 
 const STATUS: Record<TagStatus, { label: string; text: string; accent: string }> = {
+  signed: { label: "Signed", text: "text-guard", accent: "var(--color-guard)" },
+  tampered: { label: "Signature broken", text: "text-alarm", accent: "var(--color-alarm)" },
   authorized: { label: "On hold", text: "text-hold-ink", accent: "var(--color-hold)" },
   captured: { label: "Paid", text: "text-guard", accent: "var(--color-guard)" },
   voided: { label: "Cancelled", text: "text-ink-soft", accent: "var(--color-engrave)" },

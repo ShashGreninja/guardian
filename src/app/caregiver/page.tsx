@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Logo } from "@/components/logo";
 import { PaymentTag, Stamp } from "@/components/payment-tag";
 import { getHousehold, recentActivity, recentPayments } from "@/lib/household";
+import { activeRules, type ActiveRules } from "@/lib/mandates";
 import { formatMoney } from "@/lib/money";
 import { paypalConfigured } from "@/lib/paypal";
 import type { ActivityEvent, Household, Payment } from "@/lib/db/schema";
 import { HoldActions } from "./hold-actions";
 import { HouseholdForm } from "./household-form";
+import { Shell } from "./shell";
 import { TryPaymentForm } from "./try-payment-form";
 import { WalletCard } from "./wallet-card";
 import { WalletConnect } from "./wallet-connect";
@@ -40,9 +41,10 @@ export default async function CaregiverPage() {
     );
   }
 
-  const [payments, activity] = await Promise.all([
+  const [payments, activity, rules] = await Promise.all([
     recentPayments(household.id),
     recentActivity(household.id),
+    activeRules(household.id),
   ]);
   const waiting = payments.filter((p) => p.status === "authorized");
   const history = payments.filter((p) => p.status !== "authorized");
@@ -74,6 +76,7 @@ export default async function CaregiverPage() {
               <TryPaymentForm />
             </section>
           )}
+          <RulesSummary rules={rules} />
           <Activity events={activity} />
         </aside>
       </div>
@@ -81,19 +84,38 @@ export default async function CaregiverPage() {
   );
 }
 
-function Shell({ household, children }: { household?: Household; children: React.ReactNode }) {
+function RulesSummary({ rules }: { rules: ActiveRules | null }) {
+  if (!rules) {
+    return (
+      <section className="sheet">
+        <h2 className="text-xl font-bold">Rules</h2>
+        <p className="mt-2 text-ink-soft">
+          No rules yet. Write them in plain English and Guardian checks every payment against
+          them.
+        </p>
+        <Link href="/caregiver/rules" className="btn btn-primary mt-5">
+          Write the rules
+        </Link>
+      </section>
+    );
+  }
   return (
-    <div className="mx-auto w-full max-w-7xl flex-1 px-4 pb-20 sm:px-8">
-      <header className="flex flex-wrap items-center justify-between gap-4 py-5">
-        <Logo />
-        {household && (
-          <p className="text-ink-soft">
-            Looking after <span className="font-bold text-ink">{household.parentName}</span>
-          </p>
-        )}
-      </header>
-      <main className="pt-2">{children}</main>
-    </div>
+    <section className="sheet">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-xl font-bold">Rules v{rules.mandate.version}</h2>
+        <Stamp status={rules.verified ? "signed" : "tampered"} size="sm" />
+      </div>
+      <ul className="mt-3 grid gap-1.5">
+        {rules.rules.rules.slice(0, 4).map((r) => (
+          <li key={r.meaning} className="text-ink-soft">
+            {r.meaning}
+          </li>
+        ))}
+      </ul>
+      <Link href="/caregiver/rules" className="mt-4 inline-block font-bold underline">
+        Change the rules
+      </Link>
+    </section>
   );
 }
 
@@ -253,7 +275,9 @@ function serial(id: string) {
 }
 
 function dotColor(type: string) {
-  if (type.endsWith("captured") || type.startsWith("wallet")) return "bg-guard";
+  if (type.endsWith("captured") || type.startsWith("wallet") || type.startsWith("rules")) {
+    return "bg-guard";
+  }
   if (type.endsWith("held")) return "bg-hold";
   if (type.endsWith("failed")) return "bg-alarm";
   return "bg-ink-soft";
