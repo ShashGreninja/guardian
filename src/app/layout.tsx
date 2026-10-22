@@ -13,6 +13,7 @@ const atkinson = Atkinson_Hyperlegible({
 const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
   subsets: ["latin"],
+  axes: ["wdth", "opsz"],
 });
 
 export const metadata: Metadata = {
