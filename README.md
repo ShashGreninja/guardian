@@ -82,17 +82,30 @@ If the verifier can't run, the payment waits for the caregiver. The dashboard re
 
 **Webhooks:** once deployed, add a sandbox webhook for `https://<host>/api/paypal/webhook` (authorization voided, capture completed or denied) and put its ID in `PAYPAL_WEBHOOK_ID`. Deliveries are verified with PayPal before anything changes.
 
+### Scam shield
+
+On the parent screen, try: "Danny called from jail. He needs $500 for bail and said not to tell anyone."
+
+- The shopping agent never builds a basket for money to people. It calls `report_money_request` instead.
+- A Claude classifier names the pattern: grandchild emergency, government impostor, tech support, romance, prize, gift-card demand, or crypto.
+- No money moves. A red alert appears at the top of the caregiver dashboard with what the parent said, why it looks like a scam, and what to do next.
+- If the classifier can't run, the request is treated as high risk.
+
+## Deploying to Render
+
+`render.yaml` defines the web service with a 1 GB disk for the SQLite file. Create a Blueprint from the repo, then fill in `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET` and `ANTHROPIC_API_KEY`. To use webhooks, add `PAYPAL_WEBHOOK_ID` once the URL exists.
+
 ## Roadmap
 
 - [x] Wallet connect, holds, capture and void
 - [x] Caregiver rules in plain English, turned into a signed spending mandate
 - [x] Voice shopping agent for the parent
 - [x] Independent verifier agent and caregiver approvals
-- [ ] Scam shield for requests to send money to people
+- [x] Scam shield for requests to send money to people
 
 ## Stack
 
-Next.js (App Router), Tailwind CSS, Drizzle ORM with SQLite (libSQL), PayPal REST APIs (Vault v3, Orders v2, Payments v2), Claude API (Anthropic TypeScript SDK) for reading rules.
+Next.js (App Router), Tailwind CSS, Drizzle ORM with SQLite (libSQL), PayPal REST APIs (Vault v3, Orders v2, Payments v2, webhooks), Claude API (Anthropic TypeScript SDK) for four jobs: reading rules, the shopping agent, the verifier, and the scam classifier. Deploy config for Render in `render.yaml`.
 
 ## License
 
