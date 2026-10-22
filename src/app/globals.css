@@ -273,8 +273,14 @@ html[data-intro-seen] .after-intro {
     position: relative;
     background: linear-gradient(180deg, var(--color-panel-2), var(--color-panel));
     border: 1px solid var(--color-edge);
-    border-radius: 22px;
-    padding: 1.5rem;
+    border-radius: 24px;
+    padding: 1.75rem;
+  }
+
+  @media (min-width: 640px) {
+    .panel {
+      padding: 2.25rem;
+    }
   }
 
   .panel::before {

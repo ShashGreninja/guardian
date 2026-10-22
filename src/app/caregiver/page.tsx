@@ -37,7 +37,7 @@ export default async function CaregiverPage() {
   const connected = Boolean(household.vaultId);
 
   return (
-    <div className="mx-auto grid max-w-[90rem] grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-12">
+    <div className="mx-auto grid max-w-[90rem] grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-12 lg:gap-7">
       <ShieldTile
         household={household}
         waiting={waiting}
@@ -70,7 +70,7 @@ export default async function CaregiverPage() {
                 pay it or cancel it, and {household.parentName} hears back either way.
               </p>
             ) : (
-              <div className="grid grid-cols-[minmax(0,1fr)] gap-4 xl:grid-cols-2">
+              <div className="grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-2">
                 {waiting.map((p) => (
                   <PaymentTag
                     key={p.id}
@@ -88,7 +88,7 @@ export default async function CaregiverPage() {
           </Tile>
 
           <Tile label="Try a payment" className="lg:col-span-4 lg:row-span-2">
-            <p className="-mt-1 mb-5 text-fg-soft">
+            <p className="-mt-2 mb-7 text-fg-soft">
               Holds money on {household.parentName}&apos;s wallet. Nothing is paid until you say so.
             </p>
             <TryPaymentForm />
@@ -129,46 +129,47 @@ function ShieldTile({
   const connected = Boolean(household.vaultId);
   const heldCents = waiting.reduce((sum, p) => sum + p.amountCents, 0);
   const headline = !connected
-    ? `Connect ${household.parentName}'s PayPal to arm the shield.`
+    ? "Shield offline"
     : waiting.length === 0
-      ? "All clear. Nothing needs you."
-      : waiting.length === 1
-        ? "One payment is waiting for you."
-        : `${waiting.length} payments are waiting for you.`;
+      ? "All clear"
+      : `${waiting.length} waiting`;
+  const detail = !connected
+    ? `Connect ${household.parentName}'s PayPal to arm it.`
+    : waiting.length === 0
+      ? "Nothing needs you right now."
+      : `${formatMoney(heldCents)} on hold until you decide.`;
 
   return (
     <section
-      className={`relative isolate flex min-h-[30rem] flex-col justify-between overflow-clip rounded-[26px] border border-edge bg-[radial-gradient(80%_70%_at_70%_50%,#0d1a33,var(--color-void))] p-6 sm:p-8 ${className}`}
+      className={`relative isolate grid min-h-[36rem] place-items-center overflow-clip rounded-[26px] border border-edge bg-[radial-gradient(60%_60%_at_50%_50%,#0d1a33,var(--color-void))] ${className}`}
     >
-      <div className="pointer-events-none absolute top-1/2 right-[-14rem] -z-10 size-[44rem] -translate-y-1/2 sm:right-[-8rem] xl:right-[-2rem]">
-        <Shield
-          holds={connected ? waiting.length : 0}
-          budget={budget ? spent / budget : null}
-        />
+      {/* Shield and status share one grid cell, so the status reads like a gauge face. */}
+      <div className="pointer-events-none col-start-1 row-start-1 size-[min(36rem,96vw)]">
+        <Shield holds={connected ? waiting.length : 0} budget={budget ? spent / budget : null} />
       </div>
 
-      <div className="flex items-center justify-between gap-4">
+      <div className="col-start-1 row-start-1 grid max-w-[18rem] justify-items-center text-center">
         <p className="hud flex items-center gap-2 text-fg-soft">
           <span
             className={`size-1.5 rounded-full ${!connected ? "bg-fg-mute" : waiting.length ? "bg-wait" : "bg-go"}`}
           />
           Shield {connected ? "armed" : "offline"}
         </p>
-        <p className="hud text-fg-mute">
-          {greeting()}, {household.caregiverName}
-        </p>
+        <h1 className="display mt-4 text-[clamp(2.75rem,4.5vw,4.25rem)]">{headline}</h1>
+        <p className="mt-3 text-fg-soft">{detail}</p>
+        {budget !== null && connected && (
+          <p className="hud mt-4 text-fg-mute">
+            Week {formatMoney(spent)} / {formatMoney(budget)}
+          </p>
+        )}
       </div>
 
-      <div className="max-w-xl">
-        <h1 className="display text-[clamp(2.6rem,5vw,4.5rem)]">{headline}</h1>
-        <p className="mt-4 text-lg text-fg-soft">
-          {waiting.length > 0
-            ? `${formatMoney(heldCents)} is on hold on ${household.parentName}'s wallet until you decide. Held payments orbit the shield.`
-            : connected
-              ? `Payments that need you will orbit the shield.${budget ? " The ring shows this week's budget." : ""}`
-              : "Guardian holds money on the saved wallet first, so nothing moves without a check."}
-        </p>
-      </div>
+      <p className="hud absolute top-7 left-7 text-fg-mute sm:top-8 sm:left-9">
+        {greeting()}, {household.caregiverName}
+      </p>
+      <p className="hud absolute right-7 bottom-7 hidden text-right text-fg-mute sm:right-9 sm:bottom-8 sm:block">
+        {waiting.length ? "Held payments orbit the rim" : budget ? "Ring: weekly budget" : "Live"}
+      </p>
     </section>
   );
 }
@@ -192,7 +193,7 @@ function WeekTile({
 
   return (
     <Tile label="Last 7 days" className={className}>
-      <dl className="grid grid-cols-3 gap-4">
+      <dl className="grid grid-cols-3 gap-6">
         {[
           { label: "Paid", value: formatMoney(sum("captured")), tone: "text-go" },
           { label: "On hold", value: formatMoney(sum("authorized")), tone: "text-wait" },
@@ -204,7 +205,7 @@ function WeekTile({
           </div>
         ))}
       </dl>
-      <div className="mt-6">
+      <div className="mt-8">
         <div className="flex items-baseline justify-between gap-3">
           <p className="hud text-fg-mute">Weekly budget</p>
           <p className="text-sm text-fg-soft">
@@ -242,7 +243,7 @@ function RulesTile({ rules, className }: { rules: ActiveRules | null; className:
       action={<Stamp status={rules.verified ? "signed" : "tampered"} size="sm" onDark />}
       className={className}
     >
-      <ul className="grid gap-2">
+      <ul className="grid gap-3">
         {rules.rules.rules.slice(0, 4).map((r) => (
           <li key={r.meaning} className="flex gap-3 text-fg-soft">
             <span className="mt-2.5 size-1 shrink-0 rounded-full bg-scan" />
@@ -250,7 +251,7 @@ function RulesTile({ rules, className }: { rules: ActiveRules | null; className:
           </li>
         ))}
       </ul>
-      <Link href="/caregiver/rules" className="mt-5 inline-block font-bold text-scan hover:underline">
+      <Link href="/caregiver/rules" className="mt-7 inline-block font-bold text-scan hover:underline">
         Change the rules
       </Link>
     </Tile>
@@ -264,7 +265,7 @@ function NextSteps({ parentName }: { parentName: string }) {
     "Pay it or cancel it from here. That's the same choice you'll make for real purchases.",
   ];
   return (
-    <ol className="grid gap-5 sm:grid-cols-3">
+    <ol className="grid gap-8 sm:grid-cols-3">
       {steps.map((s, i) => (
         <li key={s} className="border-t border-edge-strong pt-3">
           <span className="hud text-scan">({String(i + 1).padStart(2, "0")})</span>
@@ -284,7 +285,7 @@ function Ledger({ payments }: { payments: Payment[] }) {
       {payments.map((p) => (
         <li
           key={p.id}
-          className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 py-3.5 first:pt-0 last:pb-0 sm:grid-cols-[6rem_minmax(0,1fr)_auto_8.5rem]"
+          className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-6 gap-y-1 py-5 first:pt-0 last:pb-0 sm:grid-cols-[6rem_minmax(0,1fr)_auto_8.5rem]"
         >
           <span className="hud text-fg-mute">{formatDay(p.createdAt)}</span>
           <span className="col-span-2 min-w-0 sm:col-span-1">
@@ -306,7 +307,7 @@ function Ledger({ payments }: { payments: Payment[] }) {
 function Activity({ events }: { events: ActivityEvent[] }) {
   if (events.length === 0) return <p className="text-fg-soft">Nothing has happened yet.</p>;
   return (
-    <ol className="grid gap-3">
+    <ol className="grid gap-5">
       {events.slice(0, 8).map((e) => (
         <li key={e.id} className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 sm:grid-cols-[auto_minmax(0,1fr)_auto]">
           <span className={`mt-2 size-2 rounded-full ${dotColor(e.type)}`} />

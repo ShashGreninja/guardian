@@ -69,7 +69,7 @@ export function RulesEditor({
         />
       </label>
 
-      <div className="relative mt-4 flex flex-wrap items-center gap-3">
+      <div className="relative mt-6 flex flex-wrap items-center gap-4">
         <button className="btn btn-primary" onClick={read} disabled={reading || signing}>
           {reading ? "Reading…" : draft ? "Read again" : "Read my rules"}
         </button>
@@ -84,10 +84,10 @@ export function RulesEditor({
           <h3 className="text-xl font-bold">Here&apos;s how Guardian read them</h3>
           <p className="mt-1 text-fg-soft">Check each line. Nothing changes until you sign.</p>
 
-          <div className="mt-5">
+          <div className="mt-7">
             <RuleFacts rules={draft} />
           </div>
-          <div className="mt-4">
+          <div className="mt-6">
             <RuleReading rules={draft} />
           </div>
 
@@ -103,7 +103,7 @@ export function RulesEditor({
             </div>
           )}
 
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="mt-8 flex flex-wrap gap-4">
             <button className="btn btn-gold" onClick={signDraft} disabled={signing}>
               {signing ? "Signing…" : "Sign and turn on"}
             </button>

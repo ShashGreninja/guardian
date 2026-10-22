@@ -12,7 +12,7 @@ const LINKS = [
 export function SideNav() {
   const pathname = usePathname();
   return (
-    <nav className="grid gap-1" aria-label="App">
+    <nav className="grid gap-1.5" aria-label="App">
       {LINKS.map(({ href, label, Icon }) => {
         const active = pathname === href;
         return (
@@ -20,7 +20,7 @@ export function SideNav() {
             key={href}
             href={href}
             aria-current={active ? "page" : undefined}
-            className={`flex items-center gap-3 rounded-xl px-3 py-2.5 font-bold transition-colors ${
+            className={`flex items-center gap-3 rounded-xl px-3.5 py-3 font-bold transition-colors ${
               active ? "bg-white/[0.07] text-fg" : "text-fg-soft hover:bg-white/[0.04] hover:text-fg"
             }`}
           >

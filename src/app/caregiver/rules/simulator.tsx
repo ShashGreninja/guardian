@@ -46,7 +46,7 @@ export function Simulator({ parentName }: { parentName: string }) {
         Test a purchase against the signed rules. Nothing is held or paid.
       </p>
 
-      <form onSubmit={run} className="relative mt-5 grid gap-4">
+      <form onSubmit={run} className="relative mt-7 grid gap-5">
         <div
           className="grid grid-cols-2 gap-1 rounded-full border border-edge-strong p-1"
           role="radiogroup"

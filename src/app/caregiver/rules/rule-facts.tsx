@@ -24,7 +24,7 @@ export function RuleFacts({ rules }: { rules: RuleSet }) {
 
   return (
     <div>
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-5 sm:grid-cols-4">
+      <dl className="grid grid-cols-2 gap-x-6 gap-y-7 sm:grid-cols-4">
         {facts.map((f) => (
           <div key={f.label} className="border-t border-edge-strong pt-3">
             <dt className="hud text-fg-mute">{f.label}</dt>
@@ -32,7 +32,7 @@ export function RuleFacts({ rules }: { rules: RuleSet }) {
           </div>
         ))}
       </dl>
-      <p className="mt-5 text-fg-soft">
+      <p className="mt-6 text-fg-soft">
         {rules.allowedCategories.length === 0
           ? "Any kind of store is allowed."
           : `Allowed: ${rules.allowedCategories.map((c) => CATEGORY_LABELS[c]).join(", ")}.`}
@@ -49,7 +49,7 @@ export function RuleReading({ rules }: { rules: RuleSet }) {
       {rules.rules.map((r, i) => (
         <li
           key={i}
-          className="grid gap-1 py-3.5 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:gap-5"
+          className="grid gap-2 py-5 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:gap-8"
         >
           <p className="text-fg-soft">“{r.said}”</p>
           <p className="font-bold">{r.meaning}</p>

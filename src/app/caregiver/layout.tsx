@@ -13,12 +13,12 @@ export default async function CaregiverLayout({ children }: { children: React.Re
 
   return (
     <div className="flex min-h-svh flex-1 overflow-x-clip">
-      <aside className="sticky top-0 hidden h-svh w-64 shrink-0 flex-col justify-between border-r border-edge px-4 py-6 lg:flex">
+      <aside className="sticky top-0 hidden h-svh w-68 shrink-0 flex-col justify-between border-r border-edge px-5 py-7 lg:flex">
         <div>
           <div className="px-3">
             <Logo tone="light" />
           </div>
-          <div className="mt-10">
+          <div className="mt-12">
             <SideNav />
           </div>
         </div>
@@ -41,7 +41,7 @@ export default async function CaregiverLayout({ children }: { children: React.Re
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex items-center justify-between gap-4 border-b border-edge bg-void/80 px-4 py-4 backdrop-blur-xl sm:px-8">
+        <header className="sticky top-0 z-30 flex items-center justify-between gap-4 border-b border-edge bg-void/80 px-4 py-5 backdrop-blur-xl sm:px-8 lg:px-10">
           <div className="flex items-center gap-4">
             <span className="lg:hidden">
               <Logo tone="light" />
@@ -60,7 +60,7 @@ export default async function CaregiverLayout({ children }: { children: React.Re
             </form>
           </div>
         </header>
-        <main className="flex-1 px-4 pt-6 pb-28 sm:px-8 lg:pb-12">{children}</main>
+        <main className="flex-1 px-4 pt-8 pb-32 sm:px-8 lg:px-10 lg:pt-10 lg:pb-16">{children}</main>
       </div>
 
       <TabBar />

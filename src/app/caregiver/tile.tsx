@@ -15,7 +15,7 @@ export function Tile({
   return (
     <section className={`panel min-w-0 ${className}`}>
       {(label || action) && (
-        <div className="relative mb-5 flex items-center justify-between gap-3">
+        <div className="relative mb-7 flex items-center justify-between gap-3">
           {label && <h2 className="hud text-fg-mute">{label}</h2>}
           {action}
         </div>
