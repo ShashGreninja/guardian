@@ -131,6 +131,51 @@
     mask: url("/band.svg") left center / auto 100% repeat-x;
   }
 
+  /* Holographic foil. --hx/--hy (0..1) and the tilt are set from the pointer. */
+  .holo {
+    position: relative;
+    isolation: isolate;
+    transform: perspective(900px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+    transition: transform 200ms ease-out;
+    will-change: transform;
+  }
+
+  .holo::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    border-radius: inherit;
+    pointer-events: none;
+    background:
+      linear-gradient(
+        115deg,
+        transparent calc(var(--hx, 0.3) * 100% - 30%),
+        rgb(255 255 255 / 0.28) calc(var(--hx, 0.3) * 100%),
+        transparent calc(var(--hx, 0.3) * 100% + 30%)
+      ),
+      conic-gradient(
+        from calc(var(--hy, 0.5) * 360deg) at calc(var(--hx, 0.5) * 100%) calc(var(--hy, 0.5) * 100%),
+        #ff8ad8,
+        #8af0ff,
+        #b8ff8a,
+        #ffe58a,
+        #c79bff,
+        #ff8ad8
+      );
+    mix-blend-mode: screen;
+    opacity: 0.45;
+    /* The foil only shows through the engraved lines, like a real hologram strip. */
+    -webkit-mask: url("/rosette.svg") calc(var(--hx, 0.5) * 30% + 35%) calc(var(--hy, 0.5) * 30% + 35%) / 160% no-repeat;
+    mask: url("/rosette.svg") calc(var(--hx, 0.5) * 30% + 35%) calc(var(--hy, 0.5) * 30% + 35%) / 160% no-repeat;
+  }
+
+  /* On paper-coloured cards the foil has to darken rather than glow. */
+  .holo-light::after {
+    mix-blend-mode: multiply;
+    opacity: 0.5;
+  }
+
   /* A payment is a paper tag: notched edge, punched hole, engraved strip. */
   .tag {
     position: relative;
