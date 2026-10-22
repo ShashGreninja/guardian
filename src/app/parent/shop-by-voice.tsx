@@ -6,7 +6,7 @@ import { Stamp } from "@/components/payment-tag";
 import { Shield, type Incoming } from "@/components/shield";
 import { formatMoney } from "@/lib/money";
 import type { OrderResult } from "@/lib/orders";
-import type { CartView, Turn } from "@/lib/shopper";
+import type { AlertView, CartView, Turn } from "@/lib/shopper";
 import { buy, skip, talk } from "./actions";
 
 // Minimal typing for the browser speech APIs (not in TS's DOM lib everywhere).
@@ -46,6 +46,7 @@ export function ShopByVoice({
   const [typed, setTyped] = useState("");
   const [cart, setCart] = useState<CartView | null>(null);
   const [result, setResult] = useState<OrderResult | null>(null);
+  const [blocked, setBlocked] = useState<AlertView | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [voiceOn, setVoiceOn] = useState(true);
   const [canListen, setCanListen] = useState(true);
@@ -78,6 +79,7 @@ export function ShopByVoice({
     if (!message || status === "thinking") return;
     setError(null);
     setResult(null);
+    setBlocked(null);
     const history = turns;
     setTurns((t) => [...t, { role: "user", text: message }]);
     setStatus("thinking");
@@ -90,6 +92,11 @@ export function ShopByVoice({
       }
       setTurns((t) => [...t, { role: "assistant", text: r.reply }]);
       if (r.cart) setCart(r.cart);
+      if (r.alert) {
+        setCart(null);
+        setBlocked(r.alert);
+        setIncoming({ id: Date.now(), outcome: "stopped", travelMs: 1400 });
+      }
       say(r.reply);
     });
   }
@@ -284,6 +291,16 @@ export function ShopByVoice({
               onDark
               size="lg"
             />
+          </div>
+        )}
+
+        {blocked && (
+          <div className="mt-6 flex flex-wrap items-center gap-5 rounded-3xl border border-stop/40 bg-stop/10 p-6">
+            <Stamp status="stopped" delayMs={0} onDark size="lg" />
+            <p className="text-xl">
+              No money moved. {caregiverName} has been told.
+              <span className="mt-1 block text-lg text-fg-soft">Looks like: {blocked.pattern}</span>
+            </p>
           </div>
         )}
 
