@@ -94,7 +94,26 @@ export const carts = sqliteTable("carts", {
   createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(now),
 });
 
+/** A blocked request to send money to a person, raised to the caregiver. */
+export const alerts = sqliteTable("alerts", {
+  id: text("id").primaryKey(),
+  householdId: text("household_id")
+    .notNull()
+    .references(() => households.id),
+  recipient: text("recipient").notNull(),
+  amountCents: integer("amount_cents"),
+  method: text("method").notNull(),
+  said: text("said").notNull(),
+  pattern: text("pattern").notNull(),
+  risk: text("risk").$type<"high" | "medium" | "low">().notNull(),
+  explanation: text("explanation").notNull(),
+  advice: text("advice").notNull(),
+  status: text("status").$type<"open" | "handled">().notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(now),
+});
+
 export type Household = typeof households.$inferSelect;
+export type Alert = typeof alerts.$inferSelect;
 export type Cart = typeof carts.$inferSelect;
 export type Mandate = typeof mandates.$inferSelect;
 export type Payment = typeof payments.$inferSelect;
