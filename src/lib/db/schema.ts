@@ -34,6 +34,10 @@ export const payments = sqliteTable("payments", {
   authorizationId: text("authorization_id"),
   captureId: text("capture_id"),
   failureReason: text("failure_reason"),
+  // JSON: { decision, reasons, by, policyVerdict, checks } from the verifier step.
+  review: text("review"),
+  // Who released or cancelled the hold: "verifier", "caregiver", or "paypal".
+  decidedBy: text("decided_by"),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(now),
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().$defaultFn(now),
 });
