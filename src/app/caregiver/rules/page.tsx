@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createHash } from "node:crypto";
+import { Holo } from "@/components/holo";
 import { Stamp } from "@/components/payment-tag";
 import { getHousehold } from "@/lib/household";
 import { activeRules, spentThisWeek, type ActiveRules } from "@/lib/mandates";
@@ -40,7 +41,11 @@ export default async function RulesPage() {
                 : "Write them in plain English. Claude reads them into a rule set, you check the reading, and Guardian signs it. Every payment is then checked against it."}
             </p>
           </div>
-          {rules && <SignatureCard rules={rules} />}
+          {rules && (
+            <Holo className="holo-light w-full max-w-sm rounded-[22px]">
+              <SignatureCard rules={rules} />
+            </Holo>
+          )}
         </div>
       </section>
 

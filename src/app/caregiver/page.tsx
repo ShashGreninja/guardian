@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Holo } from "@/components/holo";
 import { PaymentTag, Stamp } from "@/components/payment-tag";
+import { Shield } from "@/components/shield";
 import { getHousehold, recentActivity, recentPayments } from "@/lib/household";
 import { activeRules, type ActiveRules } from "@/lib/mandates";
 import { formatMoney } from "@/lib/money";
@@ -131,10 +133,10 @@ function Overview({ household, waiting }: { household: Household; waiting: Payme
 
   return (
     <section className="relative isolate overflow-clip rounded-[30px] bg-ink px-6 py-8 text-surface sm:px-10 sm:py-10">
-      <div
-        aria-hidden
-        className="rosette pointer-events-none absolute -bottom-64 -left-40 -z-10 size-[36rem] text-surface/[0.06]"
-      />
+      {/* Live shield: payments on hold orbit its rim until you decide. */}
+      <div className="pointer-events-none absolute top-1/2 right-[-6rem] -z-10 size-[34rem] -translate-y-1/2 opacity-90 sm:right-[-2rem]">
+        <Shield holds={household.vaultId ? waiting.length : 0} />
+      </div>
       <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_auto]">
         <div>
           <p className="text-surface/70">{greeting()}, {household.caregiverName}</p>
@@ -147,7 +149,9 @@ function Overview({ household, waiting }: { household: Household; waiting: Payme
           )}
         </div>
         {household.vaultId ? (
-          <WalletCard household={household} />
+          <Holo className="w-full max-w-sm rounded-[22px]">
+            <WalletCard household={household} />
+          </Holo>
         ) : (
           <div className="w-full max-w-sm rounded-[22px] bg-surface p-6 text-ink">
             <h2 className="text-xl font-bold">One-time setup</h2>
