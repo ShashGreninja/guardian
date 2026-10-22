@@ -10,12 +10,19 @@ Older parents are the people who most need help buying things online, and the pe
 2. Every purchase creates an Orders v2 order with `intent: AUTHORIZE` against the saved wallet. The money is held, not taken.
 3. The hold is captured (paid) or voided (released) depending on the checks.
 
+## How the rules work
+
+1. The caregiver writes rules in plain English ("Anything over $25, ask me first").
+2. Claude (`claude-opus-5-5`, structured outputs) reads them into a typed rule set: allowed categories, weekly budget, approval line, order limit, blocked merchants, and whether money can go to people. Anything it can't turn into a rule is listed back instead of guessed.
+3. The caregiver checks the reading and signs it. Guardian signs the canonical JSON with Ed25519 and stores the digest and signature. If the stored rules are ever edited, the signature check fails and Guardian refuses to use them.
+4. Purchases are checked by a deterministic policy engine (`src/lib/policy.ts`). No model decides whether money moves.
+
 ## Run it locally
 
-You need Node 20+ and a PayPal developer account.
+You need Node 20+, a PayPal developer account and a Claude API key.
 
-1. In the [PayPal developer dashboard](https://developer.paypal.com/dashboard/applications/sandbox), create a sandbox REST app. Under the app's features, keep **Accept payments** on and make sure **Vault** is enabled under Advanced options.
-2. Copy the env file and paste the app's client ID and secret:
+1. In the [PayPal developer dashboard](https://developer.paypal.com/dashboard/applications/sandbox), create a **US** sandbox business account, then a sandbox REST app tied to it. In the app's features, turn on **Save payment methods** and save.
+2. Copy the env file and paste the app's client ID and secret, plus an `ANTHROPIC_API_KEY` from [console.anthropic.com](https://console.anthropic.com):
 
    ```bash
    cp .env.example .env.local
@@ -45,17 +52,23 @@ The developer dashboard creates a sandbox **personal** account for you (Testing 
 3. Use **Try a payment** to place a hold. A tag stamped **On hold** appears.
 4. Click **Pay now** to capture it, or **Cancel hold** to void it. Check the sandbox business account's activity to see the result.
 
+### Rules
+
+1. Open the **Rules** tab. Edit the example rules or write your own, then click **Read my rules**.
+2. Check how each line was read, then click **Sign and turn on**. The signature card shows the version, digest and a **Signed** stamp.
+3. Use **What if … asked for** to test purchases. A $38 pharmacy order is held for you; $500 to "Danny" is stopped.
+
 ## Roadmap
 
 - [x] Wallet connect, holds, capture and void
-- [ ] Caregiver rules in plain English, turned into a signed spending mandate
+- [x] Caregiver rules in plain English, turned into a signed spending mandate
 - [ ] Voice shopping agent for the parent
 - [ ] Independent verifier agent and caregiver approvals
 - [ ] Scam shield for requests to send money to people
 
 ## Stack
 
-Next.js (App Router), Tailwind CSS, Drizzle ORM with SQLite (libSQL), PayPal REST APIs (Vault v3, Orders v2, Payments v2).
+Next.js (App Router), Tailwind CSS, Drizzle ORM with SQLite (libSQL), PayPal REST APIs (Vault v3, Orders v2, Payments v2), Claude API (Anthropic TypeScript SDK) for reading rules.
 
 ## License
 
