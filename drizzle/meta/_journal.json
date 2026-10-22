@@ -15,6 +15,13 @@
       "when": 1792692887270,
       "tag": "0001_rules",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1792696912032,
+      "tag": "0002_carts",
+      "breakpoints": true
     }
   ]
 }

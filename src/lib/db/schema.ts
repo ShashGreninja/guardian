@@ -74,7 +74,24 @@ export const signingKeys = sqliteTable("signing_keys", {
   createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(now),
 });
 
+/** A cart the shopping agent proposed to the parent. One store per cart. */
+export const carts = sqliteTable("carts", {
+  id: text("id").primaryKey(),
+  householdId: text("household_id")
+    .notNull()
+    .references(() => households.id),
+  store: text("store").notNull(),
+  category: text("category").notNull(),
+  // JSON: [{ productId, name, size, quantity, priceCents }]
+  lines: text("lines").notNull(),
+  totalCents: integer("total_cents").notNull(),
+  status: text("status").$type<"proposed" | "held" | "refused" | "declined">().notNull(),
+  paymentId: text("payment_id").references(() => payments.id),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(now),
+});
+
 export type Household = typeof households.$inferSelect;
+export type Cart = typeof carts.$inferSelect;
 export type Mandate = typeof mandates.$inferSelect;
 export type Payment = typeof payments.$inferSelect;
 export type ActivityEvent = typeof events.$inferSelect;
