@@ -7,7 +7,7 @@ export function HouseholdForm() {
   const [state, action, pending] = useActionState(setupHousehold, null);
 
   return (
-    <form action={action} className="mt-8 grid gap-5">
+    <form action={action} className="grid gap-5">
       <label className="grid gap-2">
         <span className="font-bold">Who will be shopping?</span>
         <input
