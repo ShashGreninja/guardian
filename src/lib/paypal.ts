@@ -214,6 +214,29 @@ export function captureAuthorization(authorizationId: string) {
   );
 }
 
+/* ---------- Webhooks ---------- */
+
+/** Asks PayPal whether a webhook delivery really came from PayPal. */
+export async function verifyWebhook(headers: Headers, event: unknown) {
+  const webhookId = process.env.PAYPAL_WEBHOOK_ID;
+  if (!webhookId) return false;
+  const result = await call<{ verification_status: string }>(
+    "/v1/notifications/verify-webhook-signature",
+    {
+      body: {
+        auth_algo: headers.get("paypal-auth-algo"),
+        cert_url: headers.get("paypal-cert-url"),
+        transmission_id: headers.get("paypal-transmission-id"),
+        transmission_sig: headers.get("paypal-transmission-sig"),
+        transmission_time: headers.get("paypal-transmission-time"),
+        webhook_id: webhookId,
+        webhook_event: event,
+      },
+    },
+  );
+  return result.verification_status === "SUCCESS";
+}
+
 export function voidAuthorization(authorizationId: string) {
   return call<void>(`/v2/payments/authorizations/${authorizationId}/void`);
 }
