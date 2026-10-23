@@ -2,29 +2,30 @@ services:
   - type: web
     name: guardian
     runtime: node
-    plan: starter
+    # Free plan: the app sleeps when idle and its local files reset on each
+    # deploy. Set DATABASE_URL to a hosted libSQL database (Turso has a free
+    # tier) to keep households, rules and payments between restarts.
+    plan: free
     buildCommand: npm ci && npm run build
     startCommand: npm start
     healthCheckPath: /login
-    # SQLite lives on a persistent disk so households and rules survive deploys.
-    disk:
-      name: guardian-data
-      mountPath: /opt/render/project/src/data
-      sizeGB: 1
     envVars:
       - key: NODE_VERSION
         value: "22"
       - key: PAYPAL_ENV
         value: sandbox
-      - key: DATABASE_URL
-        value: file:./data/guardian.db
       - key: PAYPAL_CLIENT_ID
         sync: false
       - key: PAYPAL_CLIENT_SECRET
         sync: false
-      - key: PAYPAL_WEBHOOK_ID
-        sync: false
       - key: GEMINI_API_KEY
+        sync: false
+      # Optional below. Leave blank to skip.
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_AUTH_TOKEN
+        sync: false
+      - key: PAYPAL_WEBHOOK_ID
         sync: false
       - key: ANTHROPIC_API_KEY
         sync: false
