@@ -1,19 +1,16 @@
 import "server-only";
 
 import { randomUUID } from "node:crypto";
-import Anthropic from "@anthropic-ai/sdk";
-import { betaZodTool } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { z } from "zod";
 import { findProduct, searchProducts } from "./catalog";
 import { db, schema } from "./db";
 import type { Household } from "./db/schema";
+import { LlmError, llmProvider, runAgent, tool, type Turn } from "./llm";
 import { formatMoney } from "./money";
 import { CATEGORIES } from "./rules";
 import { PATTERN_LABELS, raiseAlert } from "./scam";
 
-const client = new Anthropic();
-
-export type Turn = { role: "user" | "assistant"; text: string };
+export type { Turn };
 
 export type CartLine = {
   productId: string;
@@ -55,18 +52,18 @@ export async function shop(
   history: Turn[],
   message: string,
 ): Promise<{ reply: string; cart: CartView | null; alert: AlertView | null }> {
-  if (!process.env.ANTHROPIC_API_KEY && !process.env.ANTHROPIC_AUTH_TOKEN) {
-    throw new ShopperError("Guardian can't talk yet. Ask your family to add the Claude API key.");
+  if (!llmProvider()) {
+    throw new ShopperError("Guardian can't talk yet. Ask your family to add an AI key.");
   }
 
   let cart: CartView | null = null;
   let alert: AlertView | null = null;
 
-  const searchTool = betaZodTool({
+  const searchTool = tool({
     name: "search_products",
     description:
       "Search the store catalog. Returns up to 8 products with id, name, size, store, category and price.",
-    inputSchema: z.object({
+    schema: z.object({
       query: z.string().describe("What to look for, in a few words, e.g. 'oat milk'"),
       category: z.enum(CATEGORIES).optional(),
     }),
@@ -86,11 +83,11 @@ export async function shop(
     },
   });
 
-  const cartTool = betaZodTool({
+  const cartTool = tool({
     name: "propose_cart",
     description:
       "Put products in a cart for the parent to confirm. All items must be from the same store. Replaces any earlier cart.",
-    inputSchema: z.object({
+    schema: z.object({
       items: z
         .array(z.object({ productId: z.string(), quantity: z.number().int().min(1).max(10) }))
         .min(1),
@@ -126,11 +123,11 @@ export async function shop(
     },
   });
 
-  const moneyTool = betaZodTool({
+  const moneyTool = tool({
     name: "report_money_request",
     description:
       "Use when the parent asks to send money to a person, pay someone who contacted them, or buy gift cards or crypto for someone. Blocks the request and alerts the caregiver. Never moves money.",
-    inputSchema: z.object({
+    schema: z.object({
       recipient: z.string().describe("Who the money would go to, as the parent described them"),
       amountCents: z.number().int().nullable().describe("Amount in US cents, or null if not said"),
       method: z.enum(["transfer", "gift_card", "crypto", "cash", "other"]),
@@ -143,45 +140,22 @@ export async function shop(
     },
   });
 
-  const messages: Anthropic.Beta.BetaMessageParam[] = [
-    ...history.slice(-12).map((t) => ({ role: t.role, content: t.text })),
-    { role: "user", content: message },
-  ];
-
-  let final: Anthropic.Beta.BetaMessage;
+  let reply: string;
   try {
-    final = await client.beta.messages.toolRunner({
-      model: "claude-opus-5-5",
-      max_tokens: 4000,
-      max_iterations: 6,
-      betas: ["server-side-fallback-2026-07-01"],
-      fallbacks: "default",
-      output_config: { effort: "low" },
+    reply = await runAgent({
       system: systemPrompt(household),
+      history: history.slice(-12),
+      message,
       tools: [searchTool, cartTool, moneyTool],
-      messages,
     });
   } catch (err) {
-    if (err instanceof Anthropic.AuthenticationError) {
-      throw new ShopperError("Guardian's Claude key was rejected. Ask your family to check it.");
-    }
-    if (err instanceof Anthropic.RateLimitError) {
-      throw new ShopperError("Guardian is busy for a moment. Try again shortly.");
-    }
-    if (err instanceof Anthropic.APIError) {
-      throw new ShopperError("Guardian couldn't answer just now. Try again.");
-    }
+    if (err instanceof LlmError) throw new ShopperError(err.message);
     throw err;
   }
 
-  if (final.stop_reason === "refusal") {
-    return { reply: "I can't help with that one. Could you ask another way?", cart: null, alert };
-  }
-  const reply = final.content
-    .filter((b): b is Anthropic.Beta.BetaTextBlock => b.type === "text")
-    .map((b) => b.text)
-    .join(" ")
-    .trim();
-
-  return { reply: reply || "Sorry, I didn't catch that. Could you say it again?", cart, alert };
+  return {
+    reply: reply || "Sorry, I didn't catch that. Could you say it again?",
+    cart,
+    alert,
+  };
 }

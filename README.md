@@ -19,7 +19,7 @@ Older parents are the people who most need help buying things online, and the pe
 
 ## Run it locally
 
-You need Node 20+, a PayPal developer account and a Claude API key.
+You need Node 20+, a PayPal developer account, and one AI key: a free Gemini key from [Google AI Studio](https://aistudio.google.com) or a Claude key from [console.anthropic.com](https://console.anthropic.com). `src/lib/llm.ts` picks whichever is set.
 
 1. In the [PayPal developer dashboard](https://developer.paypal.com/dashboard/applications/sandbox), create a **US** sandbox business account, then a sandbox REST app tied to it. In the app's features, turn on **Save payment methods** and save.
 2. Copy the env file and paste the app's client ID and secret, plus an `ANTHROPIC_API_KEY` from [console.anthropic.com](https://console.anthropic.com):
@@ -105,7 +105,7 @@ On the parent screen, try: "Danny called from jail. He needs $500 for bail and s
 
 ## Stack
 
-Next.js (App Router), Tailwind CSS, Drizzle ORM with SQLite (libSQL), PayPal REST APIs (Vault v3, Orders v2, Payments v2, webhooks), Claude API (Anthropic TypeScript SDK) for four jobs: reading rules, the shopping agent, the verifier, and the scam classifier. Deploy config for Render in `render.yaml`.
+Next.js (App Router), Tailwind CSS, Drizzle ORM with SQLite (libSQL), PayPal REST APIs (Vault v3, Orders v2, Payments v2, webhooks), Gemini (`@google/genai`, free tier) or Claude (`@anthropic-ai/sdk`) for four jobs: reading rules, the shopping agent, the verifier, and the scam classifier. Deploy config for Render in `render.yaml`.
 
 ## License
 

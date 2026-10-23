@@ -1,16 +1,13 @@
 import "server-only";
 
 import { randomUUID } from "node:crypto";
-import Anthropic from "@anthropic-ai/sdk";
-import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db, ready, schema } from "./db";
 import type { Household } from "./db/schema";
 import { logEvent } from "./household";
+import { generateObject } from "./llm";
 import { formatMoney } from "./money";
-
-const client = new Anthropic();
 
 export const PATTERNS = [
   "grandchild_emergency",
@@ -54,21 +51,12 @@ export async function classify(input: {
   said: string;
 }) {
   try {
-    const response = await client.beta.messages.parse({
-      model: "claude-opus-5-5",
-      max_tokens: 2000,
-      betas: ["server-side-fallback-2026-07-01"],
-      fallbacks: "default",
-      output_config: { effort: "low", format: betaZodOutputFormat(Classification) },
+    const result = await generateObject({
+      schema: Classification,
       system: SYSTEM,
-      messages: [
-        {
-          role: "user",
-          content: `<request>\nRecipient: ${input.recipient}\nAmount: ${input.amountCents === null ? "not said" : formatMoney(input.amountCents)}\nMethod: ${input.method}\nWhat they said: ${input.said}\n</request>`,
-        },
-      ],
+      prompt: `<request>\nRecipient: ${input.recipient}\nAmount: ${input.amountCents === null ? "not said" : formatMoney(input.amountCents)}\nMethod: ${input.method}\nWhat they said: ${input.said}\n</request>`,
     });
-    if (response.parsed_output) return response.parsed_output;
+    if (result) return result;
   } catch (err) {
     console.error("scam classifier failed", err);
   }
