@@ -2,14 +2,14 @@
 
 @theme {
   /* Command center: the app lives at night. */
-  --color-void: #060a14;
-  --color-panel: #0b1222;
-  --color-panel-2: #111a2e;
-  --color-edge: rgb(150 190 230 / 0.13);
-  --color-edge-strong: rgb(150 190 230 / 0.26);
-  --color-fg: #e9eff7;
-  --color-fg-soft: #a4b1c6;
-  --color-fg-mute: #6c7a92;
+  --color-void: #0a1120;
+  --color-panel: #111a2d;
+  --color-panel-2: #16213a;
+  --color-edge: rgb(160 195 235 / 0.14);
+  --color-edge-strong: rgb(160 195 235 / 0.28);
+  --color-fg: #f1f5fa;
+  --color-fg-soft: #bcc7d8;
+  --color-fg-mute: #8d9ab0;
 
   /* Signals. Green = paid, amber = waiting on you, red = stopped,
      cyan = the shield itself. They mean the same thing everywhere. */
@@ -40,10 +40,10 @@
 
   --text-xs: 0.72rem;
   --text-xs--line-height: 1.4;
-  --text-sm: 0.95rem;
-  --text-sm--line-height: 1.45;
-  --text-base: 1.0625rem;
-  --text-base--line-height: 1.6;
+  --text-sm: 1rem;
+  --text-sm--line-height: 1.5;
+  --text-base: 1.125rem;
+  --text-base--line-height: 1.65;
   --text-lg: 1.3rem;
   --text-lg--line-height: 1.4;
   --text-xl: 1.7rem;
@@ -246,13 +246,19 @@ html[data-intro-seen] .after-intro {
     line-height: 0.9;
   }
 
-  /* HUD microtype, the way instrument panels label things. */
+  /* Small labels: plain sentence case in the readable body face. */
   .hud {
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.45;
+  }
+
+  /* Numbers that tick, like the clock, keep a fixed-width face. */
+  .tick {
     font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    line-height: 1.5;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.02em;
   }
 
   /* Guilloché line art, recoloured through masks. */
@@ -413,9 +419,10 @@ html[data-intro-seen] .after-intro {
     align-items: center;
     justify-content: center;
     gap: 0.55rem;
-    min-height: 3.1rem;
-    padding: 0 1.4rem;
+    min-height: 3.25rem;
+    padding: 0 1.5rem;
     border-radius: 999px;
+    font-size: 1.0625rem;
     font-weight: 700;
     transition:
       background-color 150ms,
@@ -480,7 +487,7 @@ html[data-intro-seen] .after-intro {
 
   .field {
     width: 100%;
-    min-height: 3.1rem;
+    min-height: 3.25rem;
     border-radius: 14px;
     background: rgb(6 10 20 / 0.6);
     border: 1px solid var(--color-edge-strong);

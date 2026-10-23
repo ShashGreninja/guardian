@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Holo } from "@/components/holo";
-import { Cursor } from "@/components/landing/cursor";
 import { Intro } from "@/components/landing/intro";
 import { LiveClock } from "@/components/landing/live-clock";
 import { Marquee } from "@/components/landing/marquee";
@@ -51,7 +50,6 @@ export default function Home() {
   return (
     <div className="flex flex-1 flex-col overflow-x-clip">
       <Intro />
-      <Cursor />
 
       <main className="flex-1">
         {/* Hero */}

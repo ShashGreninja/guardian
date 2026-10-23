@@ -23,7 +23,7 @@ export function LiveClock({ className = "" }: { className?: string }) {
     : "";
 
   return (
-    <span className={`hud tabular-nums ${className}`} suppressHydrationWarning>
+    <span className={`tick tabular-nums ${className}`} suppressHydrationWarning>
       {time} {zone}
     </span>
   );

@@ -25,7 +25,7 @@ export default async function LoginPage() {
         </div>
         <div className="col-start-1 row-start-1 grid max-w-[20rem] justify-items-center text-center">
           <p className="hud flex items-center gap-2 text-go">
-            <span className="size-1.5 rounded-full bg-go" /> Shield armed
+            <span className="size-2 rounded-full bg-go" /> Protection on
           </p>
           <p className="display mt-5 text-[clamp(2.4rem,3.4vw,3.6rem)]">
             Every payment checked before it moves.
