@@ -50,7 +50,7 @@ export function RulesEditor({
 
   return (
     <section className="panel">
-      <h2 className="hud relative text-fg-mute">{draft ? "Check the reading" : "Write the rules"}</h2>
+      <h2 className="relative text-xl font-bold">{draft ? "Check the reading" : "Write the rules"}</h2>
       <p className="relative mt-3 text-fg-soft">
         Say it the way you&apos;d tell a neighbour who was helping {parentName} shop.
       </p>

@@ -24,10 +24,10 @@ export function RuleFacts({ rules }: { rules: RuleSet }) {
 
   return (
     <div>
-      <dl className="grid grid-cols-2 gap-x-6 gap-y-7 sm:grid-cols-4">
+      <dl className="grid grid-cols-2 gap-x-8 gap-y-7 2xl:grid-cols-4">
         {facts.map((f) => (
           <div key={f.label} className="border-t border-edge-strong pt-3">
-            <dt className="hud text-fg-mute">{f.label}</dt>
+            <dt className="text-fg-soft">{f.label}</dt>
             <dd className="mt-1 font-display text-2xl font-bold">{f.value}</dd>
           </div>
         ))}
@@ -53,7 +53,7 @@ export function RuleReading({ rules }: { rules: RuleSet }) {
         >
           <p className="text-fg-soft">“{r.said}”</p>
           <p className="font-bold">{r.meaning}</p>
-          <span className="hud self-start justify-self-start rounded-full border border-edge-strong px-2.5 py-1 whitespace-nowrap text-fg-soft sm:justify-self-end">
+          <span className="self-start justify-self-start rounded-full border border-edge-strong px-3 py-1 text-sm font-bold whitespace-nowrap text-fg-soft sm:justify-self-end">
             {KIND_LABELS[r.kind]}
           </span>
         </li>

@@ -24,8 +24,8 @@ export default async function RulesPage() {
   ]);
 
   return (
-    <div className="mx-auto grid max-w-[90rem] grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-12 lg:gap-7">
-      <section className="relative isolate overflow-clip rounded-[26px] border border-edge bg-[radial-gradient(80%_90%_at_85%_50%,#0d1a33,var(--color-void))] p-7 sm:p-10 lg:col-span-12">
+    <div className="mx-auto grid max-w-[90rem] grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-12">
+      <section className="panel relative isolate overflow-clip lg:col-span-12">
         <div
           aria-hidden
           className="rosette pointer-events-none absolute top-1/2 -right-40 -z-10 size-[40rem] -translate-y-1/2 text-scan/[0.07]"
@@ -53,7 +53,7 @@ export default async function RulesPage() {
         </div>
       </section>
 
-      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-6 lg:col-span-8 lg:gap-7">
+      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-8 lg:col-span-8">
         {rules && (
           <Tile label="Signed rule set">
             <RuleFacts rules={rules.rules} />
@@ -65,7 +65,7 @@ export default async function RulesPage() {
         <RulesEditor initialText={rules?.mandate.sourceText ?? null} parentName={household.parentName} />
       </div>
 
-      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-6 lg:col-span-4 lg:gap-7">
+      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-8 lg:col-span-4">
         {rules ? (
           <Simulator parentName={household.parentName} />
         ) : (

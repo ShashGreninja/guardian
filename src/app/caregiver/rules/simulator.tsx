@@ -40,8 +40,8 @@ export function Simulator({ parentName }: { parentName: string }) {
 
   return (
     <section className="panel lg:sticky lg:top-24">
-      <h2 className="hud relative text-fg-mute">Simulator</h2>
-      <p className="relative mt-3 font-display text-xl font-bold">What if {parentName} asked for…</p>
+      <h2 className="relative text-xl font-bold">Try a purchase</h2>
+      <p className="relative mt-2 text-lg">What if {parentName} asked for…</p>
       <p className="relative mt-1 text-fg-soft">
         Test a purchase against the signed rules. Nothing is held or paid.
       </p>
