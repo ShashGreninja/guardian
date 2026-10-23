@@ -42,7 +42,7 @@ export default async function RulesPage() {
             <p className="mt-4 max-w-[54ch] text-lg text-fg-soft">
               {rules
                 ? `Every payment is checked against these rules before any money moves. ${formatMoney(spent)} held or paid in the last 7 days.`
-                : "Write them in plain English. Claude reads them into a rule set, you check the reading, and Guardian signs it. Every payment is then checked against it."}
+                : "Write them in plain English. The AI reads them into a rule set, you check the reading, and Guardian signs it. Every payment is then checked against it."}
             </p>
           </div>
           {rules && (

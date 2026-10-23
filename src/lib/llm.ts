@@ -34,12 +34,19 @@ function requireProvider() {
 }
 
 const CLAUDE_MODEL = "claude-opus-5-5";
-const geminiModel = () => process.env.GEMINI_MODEL || "gemini-3.8-flash";
+// Flash-lite answers in about two seconds on the free tier; the bigger flash
+// models were taking minutes or returning 503s under load.
+const geminiModel = () => process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
 
 let anthropicClient: Anthropic | null = null;
 let geminiClient: GoogleGenAI | null = null;
 const anthropic = () => (anthropicClient ??= new Anthropic());
-const gemini = () => (geminiClient ??= new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY }));
+const gemini = () =>
+  (geminiClient ??= new GoogleGenAI({
+    apiKey: process.env.GEMINI_API_KEY,
+    // A voice conversation can't wait minutes; fail fast with a clear message.
+    httpOptions: { timeout: 45_000 },
+  }));
 
 /** Zod schema as plain JSON Schema, without the $schema header Gemini doesn't want. */
 function jsonSchema(schema: z.ZodType) {
@@ -50,6 +57,9 @@ function jsonSchema(schema: z.ZodType) {
 
 function translate(err: unknown): never {
   if (err instanceof LlmError) throw err;
+  if (err instanceof Error && (err.name === "AbortError" || err.name === "TimeoutError")) {
+    throw new LlmError("The AI took too long to answer. Try again.");
+  }
   if (err instanceof Anthropic.AuthenticationError) throw new LlmError("The Claude API key was rejected.");
   if (err instanceof Anthropic.RateLimitError) throw new LlmError("The AI is busy right now. Try again in a minute.");
   if (err instanceof Anthropic.APIError) throw new LlmError(`The AI returned an error (${err.status}). Try again.`);
@@ -57,6 +67,7 @@ function translate(err: unknown): never {
     if (err.status === 400 && /api key/i.test(err.message)) throw new LlmError("The Gemini API key was rejected.");
     if (err.status === 401 || err.status === 403) throw new LlmError("The Gemini API key was rejected.");
     if (err.status === 429) throw new LlmError("The free AI quota is used up for now. Try again in a minute.");
+    if (err.status === 503) throw new LlmError("The AI is overloaded right now. Try again in a moment.");
     throw new LlmError(`The AI returned an error (${err.status}). Try again.`);
   }
   throw err;
