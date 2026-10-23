@@ -29,9 +29,9 @@ export default async function CaregiverLayout({ children }: { children: React.Re
         <div className="grid gap-3">
           {household && (
             <div className="rounded-2xl border border-edge bg-panel p-4">
-              <p className="hud text-fg-mute">Looking after</p>
-              <p className="mt-1 font-display text-lg font-bold">{household.parentName}</p>
-              <p className="text-sm text-fg-soft">Caregiver: {household.caregiverName}</p>
+              <p className="text-fg-soft">Looking after</p>
+              <p className="mt-1 font-display text-xl font-bold">{household.parentName}</p>
+              <p className="text-fg-soft">Caregiver: {household.caregiverName}</p>
             </div>
           )}
           <form action={signOut}>
@@ -55,7 +55,7 @@ export default async function CaregiverLayout({ children }: { children: React.Re
           </div>
           <div className="flex items-center gap-5">
             <p className="hud hidden items-center gap-2 text-go sm:flex">
-              <span className="size-1.5 rounded-full bg-go" /> Sandbox live
+              <span className="size-2 rounded-full bg-go" /> Test mode
             </p>
             <LiveClock className="hidden text-fg-mute md:inline" />
             <form action={signOut} className="lg:hidden">

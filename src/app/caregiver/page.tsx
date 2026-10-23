@@ -3,18 +3,18 @@ import Link from "next/link";
 import { Holo } from "@/components/holo";
 import { PaymentTag, Stamp } from "@/components/payment-tag";
 import { Shield } from "@/components/shield";
-import type { ActivityEvent, Household, Payment } from "@/lib/db/schema";
-import { formatDay, formatTime, greeting, inLastWeek, serial } from "@/lib/format";
+import type { Household, Payment } from "@/lib/db/schema";
+import { formatTime, greeting, inLastWeek, serial } from "@/lib/format";
 import { getHousehold, recentActivity, recentPayments } from "@/lib/household";
 import { activeRules, spentThisWeek, type ActiveRules } from "@/lib/mandates";
 import { formatMoney } from "@/lib/money";
 import { paypalConfigured } from "@/lib/paypal";
 import { openAlerts, PATTERN_LABELS } from "@/lib/scam";
 import { Alerts } from "./alerts";
+import { Activity } from "./history-parts";
 import { HoldActions } from "./hold-actions";
 import { HouseholdForm } from "./household-form";
 import { Tile } from "./tile";
-import { TryPaymentForm } from "./try-payment-form";
 import { WalletCard } from "./wallet-card";
 import { WalletConnect } from "./wallet-connect";
 
@@ -35,12 +35,11 @@ export default async function CaregiverPage() {
     openAlerts(household.id),
   ]);
   const waiting = payments.filter((p) => p.status === "authorized");
-  const history = payments.filter((p) => p.status !== "authorized");
   const budget = rules?.rules.weeklyBudgetCents ?? null;
   const connected = Boolean(household.vaultId);
 
   return (
-    <div className="mx-auto grid max-w-[90rem] grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-12 lg:gap-7">
+    <div className="mx-auto grid max-w-[90rem] grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-12">
       <Alerts
         parentName={household.parentName}
         alerts={alerts.map((a) => ({
@@ -56,87 +55,79 @@ export default async function CaregiverPage() {
         }))}
       />
 
-      <ShieldTile
+      <StatusTile
         household={household}
         waiting={waiting}
         spent={spent}
         budget={budget}
-        className="lg:col-span-8 lg:row-span-2"
+        className="lg:col-span-7"
       />
 
-      <Tile label="Wallet" className="lg:col-span-4">
-        {connected ? (
-          <Holo className="rounded-[22px]">
-            <WalletCard household={household} />
-          </Holo>
+      <div className="grid content-start gap-8 lg:col-span-5">
+        <Tile label="Wallet">
+          {connected ? (
+            <Holo className="rounded-[22px]">
+              <WalletCard household={household} />
+            </Holo>
+          ) : (
+            <WalletConnect parentName={household.parentName} />
+          )}
+        </Tile>
+        <WeekTile payments={payments} spent={spent} budget={budget} />
+      </div>
+
+      <Tile
+        label={waiting.length ? `Waiting for you (${waiting.length})` : "Waiting for you"}
+        className="lg:col-span-7"
+      >
+        {!connected ? (
+          <NextSteps parentName={household.parentName} />
+        ) : waiting.length === 0 ? (
+          <p className="max-w-[52ch] text-lg text-fg-soft">
+            Nothing to approve. When a payment needs your OK, it shows up here with the money
+            already on hold, and you choose to pay it or cancel it.
+          </p>
         ) : (
-          <WalletConnect parentName={household.parentName} />
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-6">
+            {waiting.map((p) => (
+              <PaymentTag
+                key={p.id}
+                merchant={p.merchant}
+                description={p.description}
+                amountCents={p.amountCents}
+                status={p.status}
+                serial={serial(p.id)}
+                note={`Held ${formatTime(p.updatedAt)}`}
+                footer={
+                  <>
+                    <ReviewNotes review={p.review} />
+                    <HoldActions paymentId={p.id} />
+                  </>
+                }
+              />
+            ))}
+          </div>
         )}
       </Tile>
 
-      <WeekTile payments={payments} spent={spent} budget={budget} className="lg:col-span-4" />
+      <RulesTile rules={rules} className="lg:col-span-5" />
 
-      {connected ? (
-        <>
-          <Tile
-            label={`Waiting for you${waiting.length ? ` (${waiting.length})` : ""}`}
-            className="lg:col-span-8"
-          >
-            {waiting.length === 0 ? (
-              <p className="max-w-[52ch] text-fg-soft">
-                When a payment needs your OK it lands here, with the money already on hold. You
-                pay it or cancel it, and {household.parentName} hears back either way.
-              </p>
-            ) : (
-              <div className="grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-2">
-                {waiting.map((p) => (
-                  <PaymentTag
-                    key={p.id}
-                    merchant={p.merchant}
-                    description={p.description}
-                    amountCents={p.amountCents}
-                    status={p.status}
-                    serial={serial(p.id)}
-                    note={`Held ${formatTime(p.updatedAt)}`}
-                    footer={
-                      <>
-                        <ReviewNotes review={p.review} />
-                        <HoldActions paymentId={p.id} />
-                      </>
-                    }
-                  />
-                ))}
-              </div>
-            )}
-          </Tile>
-
-          <Tile label="Try a payment" className="lg:col-span-4 lg:row-span-2">
-            <p className="-mt-2 mb-7 text-fg-soft">
-              Holds money on {household.parentName}&apos;s wallet. Nothing is paid until you say so.
-            </p>
-            <TryPaymentForm />
-          </Tile>
-
-          <Tile label="Ledger" className="lg:col-span-8">
-            <Ledger payments={history} />
-          </Tile>
-        </>
-      ) : (
-        <Tile label="What happens next" className="lg:col-span-8">
-          <NextSteps parentName={household.parentName} />
-        </Tile>
-      )}
-
-      <RulesTile rules={rules} className="lg:col-span-4" />
-
-      <Tile label="Activity" className={connected ? "lg:col-span-8" : "lg:col-span-12"}>
-        <Activity events={activity} />
+      <Tile
+        label="Recent activity"
+        action={
+          <Link href="/caregiver/history" className="font-bold text-scan hover:underline">
+            See all
+          </Link>
+        }
+        className="lg:col-span-12"
+      >
+        <Activity events={activity} limit={4} />
       </Tile>
     </div>
   );
 }
 
-function ShieldTile({
+function StatusTile({
   household,
   waiting,
   spent,
@@ -151,48 +142,33 @@ function ShieldTile({
 }) {
   const connected = Boolean(household.vaultId);
   const heldCents = waiting.reduce((sum, p) => sum + p.amountCents, 0);
-  const headline = !connected
-    ? "Shield offline"
-    : waiting.length === 0
-      ? "All clear"
-      : `${waiting.length} waiting`;
+  const headline = !connected ? "Not set up yet" : waiting.length === 0 ? "All clear" : `${waiting.length} waiting`;
   const detail = !connected
-    ? `Connect ${household.parentName}'s PayPal to arm it.`
+    ? `Connect ${household.parentName}'s PayPal to start.`
     : waiting.length === 0
       ? "Nothing needs you right now."
-      : `${formatMoney(heldCents)} on hold until you decide.`;
+      : `${formatMoney(heldCents)} is on hold until you decide.`;
 
   return (
-    <section
-      className={`relative isolate grid min-h-[36rem] place-items-center overflow-clip rounded-[26px] border border-edge bg-[radial-gradient(60%_60%_at_50%_50%,#0d1a33,var(--color-void))] ${className}`}
-    >
-      {/* Shield and status share one grid cell, so the status reads like a gauge face. */}
-      <div className="pointer-events-none col-start-1 row-start-1 size-[min(36rem,96vw)]">
-        <Shield holds={connected ? waiting.length : 0} budget={budget ? spent / budget : null} />
-      </div>
-
-      <div className="col-start-1 row-start-1 grid max-w-[18rem] justify-items-center text-center">
-        <p className="hud flex items-center gap-2 text-fg-soft">
-          <span
-            className={`size-1.5 rounded-full ${!connected ? "bg-fg-mute" : waiting.length ? "bg-wait" : "bg-go"}`}
-          />
-          Shield {connected ? "armed" : "offline"}
-        </p>
-        <h1 className="display mt-4 text-[clamp(2.75rem,4.5vw,4.25rem)]">{headline}</h1>
-        <p className="mt-3 text-fg-soft">{detail}</p>
-        {budget !== null && connected && (
-          <p className="hud mt-4 text-fg-mute">
-            Week {formatMoney(spent)} / {formatMoney(budget)}
-          </p>
-        )}
-      </div>
-
-      <p className="hud absolute top-7 left-7 text-fg-mute sm:top-8 sm:left-9">
+    <section className={`panel relative isolate grid min-h-[30rem] place-items-center overflow-clip ${className}`}>
+      <p className="absolute top-7 left-7 text-lg text-fg-soft sm:top-9 sm:left-9">
         {greeting()}, {household.caregiverName}
       </p>
-      <p className="hud absolute right-7 bottom-7 hidden text-right text-fg-mute sm:right-9 sm:bottom-8 sm:block">
-        {waiting.length ? "Held payments orbit the rim" : budget ? "Ring: weekly budget" : "Live"}
-      </p>
+
+      {/* Shield and status share one grid cell, so the words sit in its centre. */}
+      <div className="pointer-events-none col-start-1 row-start-1 size-[min(32rem,90vw)] opacity-90">
+        <Shield holds={connected ? waiting.length : 0} budget={budget ? spent / budget : null} />
+      </div>
+      <div className="col-start-1 row-start-1 grid max-w-[17rem] justify-items-center text-center">
+        <p
+          className={`flex items-center gap-2 font-bold ${!connected ? "text-fg-mute" : waiting.length ? "text-wait" : "text-go"}`}
+        >
+          <span className="size-2 rounded-full bg-current" />
+          {connected ? "Protection on" : "Protection off"}
+        </p>
+        <h1 className="display mt-3 text-[clamp(2.75rem,4.5vw,4rem)]">{headline}</h1>
+        <p className="mt-3 text-lg text-fg-soft">{detail}</p>
+      </div>
     </section>
   );
 }
@@ -201,12 +177,10 @@ function WeekTile({
   payments,
   spent,
   budget,
-  className,
 }: {
   payments: Payment[];
   spent: number;
   budget: number | null;
-  className: string;
 }) {
   const week = payments.filter((p) => inLastWeek(p.createdAt));
   const sum = (status: Payment["status"]) =>
@@ -215,27 +189,25 @@ function WeekTile({
   const over = budget !== null && spent > budget;
 
   return (
-    <Tile label="Last 7 days" className={className}>
-      <dl className="grid grid-cols-3 gap-6">
-        {[
-          { label: "Paid", value: formatMoney(sum("captured")), tone: "text-go" },
-          { label: "On hold", value: formatMoney(sum("authorized")), tone: "text-wait" },
-          { label: "Cancelled", value: String(week.filter((p) => p.status === "voided").length), tone: "text-fg" },
-        ].map((s) => (
-          <div key={s.label}>
-            <dt className="hud text-fg-mute">{s.label}</dt>
-            <dd className={`mt-1 font-display text-xl font-bold ${s.tone}`}>{s.value}</dd>
-          </div>
-        ))}
+    <Tile label="This week">
+      <dl className="grid grid-cols-2 gap-6">
+        <div>
+          <dt className="text-fg-soft">Paid</dt>
+          <dd className="mt-1 font-display text-2xl font-bold">{formatMoney(sum("captured"))}</dd>
+        </div>
+        <div>
+          <dt className="text-fg-soft">On hold</dt>
+          <dd className="mt-1 font-display text-2xl font-bold">{formatMoney(sum("authorized"))}</dd>
+        </div>
       </dl>
-      <div className="mt-8">
+      <div className="mt-7">
         <div className="flex items-baseline justify-between gap-3">
-          <p className="hud text-fg-mute">Weekly budget</p>
-          <p className="text-sm text-fg-soft">
-            {budget ? `${formatMoney(spent)} of ${formatMoney(budget)}` : "No budget set"}
+          <p className="text-fg-soft">Weekly budget</p>
+          <p className="font-bold">
+            {budget ? `${formatMoney(spent)} of ${formatMoney(budget)}` : "Not set"}
           </p>
         </div>
-        <div className="mt-2 h-2 overflow-clip rounded-full bg-white/[0.06]">
+        <div className="mt-3 h-2.5 overflow-clip rounded-full bg-white/[0.08]">
           <div
             className={`h-full rounded-full ${over ? "bg-stop" : share > 0.8 ? "bg-wait" : "bg-go"}`}
             style={{ width: `${Math.max(share * 100, budget ? 2 : 0)}%` }}
@@ -249,12 +221,12 @@ function WeekTile({
 function RulesTile({ rules, className }: { rules: ActiveRules | null; className: string }) {
   if (!rules) {
     return (
-      <Tile label="Rules" className={className}>
-        <p className="text-fg-soft">
+      <Tile label="Spending rules" className={className}>
+        <p className="text-lg text-fg-soft">
           No rules yet. Write them in plain English and Guardian checks every payment against
           them.
         </p>
-        <Link href="/caregiver/rules" className="btn btn-primary mt-5">
+        <Link href="/caregiver/rules" className="btn btn-primary mt-6">
           Write the rules
         </Link>
       </Tile>
@@ -262,19 +234,19 @@ function RulesTile({ rules, className }: { rules: ActiveRules | null; className:
   }
   return (
     <Tile
-      label={`Rules v${rules.mandate.version}`}
+      label="Spending rules"
       action={<Stamp status={rules.verified ? "signed" : "tampered"} size="sm" onDark />}
       className={className}
     >
       <ul className="grid gap-3">
         {rules.rules.rules.slice(0, 4).map((r) => (
-          <li key={r.meaning} className="flex gap-3 text-fg-soft">
-            <span className="mt-2.5 size-1 shrink-0 rounded-full bg-scan" />
+          <li key={r.meaning} className="flex gap-3 text-lg text-fg-soft">
+            <span className="mt-3 size-1.5 shrink-0 rounded-full bg-scan" />
             {r.meaning}
           </li>
         ))}
       </ul>
-      <Link href="/caregiver/rules" className="mt-7 inline-block font-bold text-scan hover:underline">
+      <Link href="/caregiver/rules" className="mt-6 inline-block font-bold text-scan hover:underline">
         Change the rules
       </Link>
     </Tile>
@@ -293,10 +265,10 @@ function ReviewNotes({ review }: { review: string | null }) {
   if (!parsed.reasons?.length) return null;
   return (
     <div className="mb-4">
-      <p className="text-sm font-bold text-ink-soft">
-        {parsed.by === "verifier" ? "The verifier asked you to look because:" : "Why it's waiting:"}
+      <p className="font-bold text-ink-soft">
+        {parsed.by === "verifier" ? "The second check asked you to look because:" : "Why it's waiting:"}
       </p>
-      <ul className="mt-1 list-disc pl-5 text-sm text-ink">
+      <ul className="mt-1 list-disc pl-5 text-ink">
         {parsed.reasons.map((r) => (
           <li key={r}>{r}</li>
         ))}
@@ -307,85 +279,29 @@ function ReviewNotes({ review }: { review: string | null }) {
 
 function NextSteps({ parentName }: { parentName: string }) {
   const steps = [
-    `Sign in with ${parentName}'s PayPal once. Guardian saves the wallet with PayPal Vault.`,
-    "Place a test hold. The money is reserved on the wallet, not taken.",
-    "Pay it or cancel it from here. That's the same choice you'll make for real purchases.",
+    `Connect ${parentName}'s PayPal once. Guardian saves the wallet securely with PayPal.`,
+    "Write the spending rules in plain English on the Rules page.",
+    `When ${parentName} shops, payments that need you will show up here.`,
   ];
   return (
-    <ol className="grid gap-8 sm:grid-cols-3">
-      {steps.map((s, i) => (
-        <li key={s} className="border-t border-edge-strong pt-3">
-          <span className="hud text-scan">({String(i + 1).padStart(2, "0")})</span>
-          <p className="mt-3 text-fg-soft">{s}</p>
-        </li>
-      ))}
-    </ol>
-  );
-}
-
-function Ledger({ payments }: { payments: Payment[] }) {
-  if (payments.length === 0) {
-    return <p className="text-fg-soft">Paid and cancelled payments are listed here.</p>;
-  }
-  return (
-    <ul className="divide-y divide-edge">
-      {payments.map((p) => (
-        <li
-          key={p.id}
-          className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-6 gap-y-1 py-5 first:pt-0 last:pb-0 sm:grid-cols-[6rem_minmax(0,1fr)_auto_8.5rem]"
-        >
-          <span className="hud text-fg-mute">{formatDay(p.createdAt)}</span>
-          <span className="col-span-2 min-w-0 sm:col-span-1">
-            <span className="block truncate font-bold">{p.merchant}</span>
-            <span className="block truncate text-sm text-fg-soft">
-              {p.status === "failed" ? p.failureReason : p.description}
-            </span>
-          </span>
-          <span className="font-display text-lg font-bold">{formatMoney(p.amountCents)}</span>
-          <span className="grid justify-items-end gap-1 justify-self-end">
-            <Stamp status={p.status} size="sm" onDark />
-            {p.decidedBy && (
-              <span className="hud text-fg-mute">
-                by {p.decidedBy === "caregiver" ? "you" : p.decidedBy}
-              </span>
-            )}
-          </span>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function Activity({ events }: { events: ActivityEvent[] }) {
-  if (events.length === 0) return <p className="text-fg-soft">Nothing has happened yet.</p>;
-  return (
     <ol className="grid gap-5">
-      {events.slice(0, 8).map((e) => (
-        <li key={e.id} className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 sm:grid-cols-[auto_minmax(0,1fr)_auto]">
-          <span className={`mt-2 size-2 rounded-full ${dotColor(e.type)}`} />
-          <p>{e.message}</p>
-          <p className="hud col-start-2 text-fg-mute sm:col-start-3 sm:pt-1">{formatTime(e.createdAt)}</p>
+      {steps.map((s, i) => (
+        <li key={s} className="flex gap-4">
+          <span className="grid size-9 shrink-0 place-items-center rounded-full bg-white/[0.08] font-bold">
+            {i + 1}
+          </span>
+          <p className="pt-1 text-lg text-fg-soft">{s}</p>
         </li>
       ))}
     </ol>
   );
-}
-
-function dotColor(type: string) {
-  if (type.endsWith("captured") || type.startsWith("wallet") || type.startsWith("rules")) {
-    return "bg-go";
-  }
-  if (type.endsWith("refused") || type === "scam.blocked") return "bg-stop";
-  if (type.endsWith("held") || type.startsWith("order")) return "bg-wait";
-  if (type.endsWith("failed")) return "bg-stop";
-  return "bg-fg-mute";
 }
 
 function Setup() {
   return (
     <section className="mx-auto grid max-w-6xl items-center gap-12 py-10 lg:grid-cols-2">
       <div>
-        <p className="hud text-scan">First run</p>
+        <p className="font-bold text-scan">First step</p>
         <h1 className="display mt-4 text-[clamp(2.75rem,6vw,5rem)]">Set up Guardian for your family</h1>
         <p className="mt-5 max-w-[40ch] text-lg text-fg-soft">
           Start with two names. Next you&apos;ll connect your parent&apos;s PayPal wallet so
@@ -404,7 +320,7 @@ function Setup() {
 function MissingKeys() {
   return (
     <section className="mx-auto max-w-2xl py-10">
-      <p className="hud text-wait">Setup needed</p>
+      <p className="font-bold text-wait">Setup needed</p>
       <h1 className="display mt-4 text-[clamp(2.5rem,5vw,4rem)]">Add your PayPal sandbox keys</h1>
       <p className="mt-4 text-lg text-fg-soft">
         Guardian talks to the PayPal sandbox, so it needs a REST app to run.

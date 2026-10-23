@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-/** One instrument in the bento grid: a lit panel with a HUD label. */
+/** One card on a dashboard page. Every panel in the app uses this shape. */
 export function Tile({
   label,
   action,
@@ -15,8 +15,8 @@ export function Tile({
   return (
     <section className={`panel min-w-0 ${className}`}>
       {(label || action) && (
-        <div className="relative mb-7 flex items-center justify-between gap-3">
-          {label && <h2 className="hud text-fg-mute">{label}</h2>}
+        <div className="relative mb-6 flex items-center justify-between gap-3">
+          {label && <h2 className="text-xl font-bold">{label}</h2>}
           {action}
         </div>
       )}

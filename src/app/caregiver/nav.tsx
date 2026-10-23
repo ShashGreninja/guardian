@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutGrid, Mic, ScrollText } from "lucide-react";
+import { History, LayoutGrid, Mic, ScrollText } from "lucide-react";
 
 const LINKS = [
   { href: "/caregiver", label: "Overview", Icon: LayoutGrid },
+  { href: "/caregiver/history", label: "History", Icon: History },
   { href: "/caregiver/rules", label: "Rules", Icon: ScrollText },
 ];
 
@@ -44,7 +45,7 @@ export function TabBar() {
   const pathname = usePathname();
   return (
     <nav
-      className="fixed inset-x-3 bottom-3 z-40 grid grid-cols-2 gap-1 rounded-2xl border border-edge-strong bg-panel/90 p-1.5 backdrop-blur-xl lg:hidden"
+      className="fixed inset-x-3 bottom-3 z-40 grid grid-cols-3 gap-1 rounded-2xl border border-edge-strong bg-panel/90 p-1.5 backdrop-blur-xl lg:hidden"
       aria-label="App"
     >
       {LINKS.map(({ href, label, Icon }) => {
@@ -70,5 +71,5 @@ export function TabBar() {
 export function PageTitle() {
   const pathname = usePathname();
   const title = LINKS.find((l) => l.href === pathname)?.label ?? "Guardian";
-  return <p className="font-display text-xl font-bold">{title}</p>;
+  return <p className="font-display text-2xl font-bold">{title}</p>;
 }
