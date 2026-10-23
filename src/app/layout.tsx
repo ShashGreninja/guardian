@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Atkinson_Hyperlegible, Bricolage_Grotesque, Martian_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -35,7 +36,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
       className={`${atkinson.variable} ${bricolage.variable} ${martian.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        {/* Runs before paint so returning visitors never see the intro overlay flash. */}
+        <Script id="intro-seen" strategy="beforeInteractive">
+          {
+            "try{if(sessionStorage.getItem('guardian-intro')){document.documentElement.dataset.introSeen=''}else{sessionStorage.setItem('guardian-intro','1')}}catch(e){}"
+          }
+        </Script>
+        {children}
+      </body>
     </html>
   );
 }
